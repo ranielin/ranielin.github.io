@@ -3,7 +3,6 @@
     <head> 
         <meta charset="utf-8">
         <meta name = "viewport" content = "width=device-width, initial-scale = 1"> 
-        <script src="script.js" defer></script>
         <title>Ranie Lin</title>
         <link rel = "stylesheet" href = "style.css">
     </head>
@@ -13,16 +12,15 @@
             <div class = "navbar">
                 <img src = "logo.jpg" class = "logo">
                 <ul>
-                    <li data-tab-target="#a-content"><a href = "#">About</a></li>
-                    <li data-tab-target="#b-content"><a href = "#/test">Research</a></li>
-                    <li data-tab-target="#c-content"><a href = "#">Other</a></li>
+                    <li><a href = "#">About</a></li>
+                    <li><a href = "research.html">Research</a></li>
+                    <li><a href = "other.html">Other</a></li>
                 </ul>
             </div>
-
+            
             <div class = "content">
-                <div id = "a-content" data-tab-content class="active">
+                <div id = "a-content">
                     <img id = "me" src="me.jpg" width = 250px height = auto;>
-
                     <div class = "a-text">
                         <h1>Ranie Lin</h1>
                         <p> I am an incoming first-year PhD student in Economics at Princeton University. My interests are in empirical industrial organization and 
@@ -46,33 +44,8 @@
                         </div>
                     </div>
                 </div>
-
-                <div id = "b-content" data-tab-content>
-                    <p> Coming soon (hopefully!) :)</p>
-                    <!--
-                    <h1>This is a header</h1>
-                    <p> This is a paragraph under the header. <br>This is another line.</p>
-
-                    <div>
-                        <button type="button"><span></span>One</button>
-                        <button type="button"><span></span>Two</button>
-                    </div>
-                    -->
-                </div>
-
-                <div id = "c-content" data-tab-content>
-                    <!--
-                    <h1>This is a header</h1>
-                    <p> This is a paragraph under the header. <br>This is another line.</p>
-
-                    <div>
-                        <button type="button"><span></span>One</button>
-                        <button type="button"><span></span>Two</button>
-                    </div>
-                    -->
-                </div>
-
             </div>
         </div>
+
     </body>
 </html>
