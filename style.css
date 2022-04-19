@@ -62,7 +62,7 @@
     .navbar a.icon {
       display: block;
       position: absolute;
-      right: 10%;
+      left: 5%;
       top: 0;
     }
 
@@ -78,15 +78,17 @@
         
     .navbar.responsive a.icon{
         position: absolute;
-        right: 66.8%;
+        left: -533.5%;
         top: 0;
     }
 
     .navbar.responsive ul{
         position: absolute;
         margin-left: 0px;
-        left: -22.5px; 
-        top: 120%;
+        left: -540%; 
+        top: 100%;
+        padding-top: 25px;
+        background-color: #fff;
     }
 
     .navbar.responsive ul li{
