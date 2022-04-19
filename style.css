@@ -62,6 +62,7 @@
     .navbar a.icon {
       display: block;
       position: absolute;
+      width: 40px;
       left: 5%;
       top: 0;
     }
