@@ -3,19 +3,24 @@
     <head> 
         <meta charset="utf-8">
         <meta name = "viewport" content = "width=device-width, initial-scale = 1"> 
-        <title>Ranie Lin</title>
+        <script src = "script.js"></script>
         <link rel = "stylesheet" href = "style.css">
+        <link rel = "stylesheet" href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>Ranie Lin</title>
     </head>
 
     <body>
         <div class = "banner">
-            <div class = "navbar">
+            <div class = "navbar" id = "navigation"> 
                 <ul>
-                    <li><a href = "#">About</a></li>
+                    <li><a href = "#" class = "active">About</a></li>
                     <li><a href = "research.html">Research</a></li>
                 </ul>
+                <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+                    <i class="fa fa-bars"></i>
+                </a>
             </div>
-            
+         
             <div class = "content">
                 <div id = "a-content">
                     <img id = "me" src="me.jpg" width = 250px height = auto;>
@@ -31,7 +36,6 @@
 
                         <p>
                             Contact: ranie.lin [at] gmail.com <br>
-                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
                             <a href="https://twitter.com/ranielin" target = "_blank" rel = "noreferrer noopener" class="fa fa-twitter"></a>
                             <a href="https://www.linkedin.com/in/ranielin/" target = "_blank" rel = "noreferrer noopener" class="fa fa-linkedin"></a>

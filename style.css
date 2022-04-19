@@ -46,6 +46,56 @@
     bottom: -10px;
 }
 
+.navbar .icon{
+    position: absolute;
+    right: 10%;
+    top: 2%;
+    font-size: 15px;
+    line-height: 80px;
+    cursor: pointer; 
+    display: none;
+}
+
+
+@media screen and (max-width: 600px) {
+    .navbar ul li{display: none;}
+    .navbar a.icon {
+      display: block;
+      position: absolute;
+      right: 10%;
+      top: 0;
+    }
+
+    #me {
+        padding-top: 4%;
+    }
+  }
+  
+@media screen and (max-width: 600px) {
+    .navbar.responsive {
+        position: relative;
+    }
+        
+    .navbar.responsive a.icon{
+        position: absolute;
+        right: 66.8%;
+        top: 0;
+    }
+
+    .navbar.responsive ul{
+        position: absolute;
+        margin-left: 0px;
+        left: -22.5px; 
+        top: 120%;
+    }
+
+    .navbar.responsive ul li{
+        display: block;
+        margin-bottom: 1.25em;
+    }
+
+}
+
 .content{
     padding-top: 8.5%;
 }
@@ -75,10 +125,14 @@
     padding-right: 6%;
 }
 
-@media only screen and (max-width: 1000px) {
+@media only screen and (max-width: 975px) {
     #me {
         float: none;
         padding-bottom: 4%;
+    }
+
+    .navbar{
+        padding-top: 2.5em;
     }
 }
 
@@ -154,4 +208,3 @@ button:hover{
 .fa:hover {
     opacity: 0.5;
 }
-  
