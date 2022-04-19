@@ -89,6 +89,7 @@
         top: 100%;
         padding-top: 25px;
         background-color: #fff;
+        z-index: 1;
     }
 
     .navbar.responsive ul li{
