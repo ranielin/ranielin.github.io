@@ -156,13 +156,10 @@
 }
 
 #c-content{
-    width: 100%;
     position: absolute;
-    top: 225px;
+    top: 150px;
+    width: 100%;
     left: 15%;
-    transform: translateY(-50%);
-    text-align: left;
-    color: #000;
 }
 
 #c-content h1{
@@ -194,6 +191,7 @@
     max-inline-size: 75%;
     list-style-type: disc;
 }
+
 button{
     width: 200px;
     padding: 15px 0;
