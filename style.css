@@ -158,13 +158,42 @@
 #c-content{
     width: 100%;
     position: absolute;
-    top: 20%;
+    top: 225px;
     left: 15%;
     transform: translateY(-50%);
     text-align: left;
     color: #000;
 }
 
+#c-content h1{
+    font-size: 70px auto;
+    margin-bottom: 20px;
+}
+
+#c-content p{
+    margin-top: 10px;
+    margin-bottom: 15px;
+    font-weight: 100;
+    line-height: 25px;
+    max-inline-size: 65%;
+}
+
+#c-content ol{
+    margin-left: 25px;
+    margin-bottom: 15px;
+    font-weight: 100;
+    line-height: 25px;
+    max-inline-size: 75%;
+}
+
+#c-content ul{
+    margin-left: 35px;
+    margin-bottom: 15px;
+    font-weight: 100;
+    line-height: 25px;
+    max-inline-size: 75%;
+    list-style-type: disc;
+}
 button{
     width: 200px;
     padding: 15px 0;
