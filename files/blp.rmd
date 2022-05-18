@@ -9,7 +9,7 @@ output:
 
 This is a detailed walkthrough of a replication of the point estimates (the first "parameter estimates" column of Table IV) in Berry, Levinsohn, and Pakes (1995). A repository with all of the code can be found [here](https://github.com/ranielin/Berry-Levinsohn-and-Pakes-1995-Replication/). Note that this walkthrough is for expository purposes, i.e., to convey the basic fundamentals of the BLP demand estimation routine in an easy to understand format, and may not incorporate the most up-to-date practices for demand estimation.
 
-### Model of Demand and Supply
+## Model of Demand and Supply
 
 The indirect utility function that consumer $i = 1, \dots I$ in receives from selecting product $j = 1, \dots, J_t$ in market $t = 1, \dots, T$, as specified in BLP (1995), is $$u_{ijt} = -\alpha \ln(e^{m_t + \hat \sigma_y \nu_{iy}} - p_{jt}) + x_{jt}^T \bar \beta + \xi_{jt} + \sum_k \sigma_k x_{jkt} \nu_{ik} + \epsilon_{ijt}$$ and $$u_{i0t} = -\alpha \ln(e^{m_t + \hat \sigma_y \nu_{iy}}) + \xi_{0t} + \sigma_0 \nu_{i0} + \epsilon_{i0t}$$ for the outside option, where $\alpha$ is the price coefficient, $m_t$ and $\hat \sigma_y$ are empirical income mean and standard deviation estimates, $\nu_{iy} \overset{\text{iid}}{\sim} N(0, 1)$ controls the distribution of income, $p_{jt}$ is the price of product $j$ in market $t$, $x_{jt}$ is a vector of characteristics of product $j$ in market $t$, $\bar \beta$ is a vector of linear parameters representing mean preferences for product characteristics, $\xi_{jt}$ is a latent demand shock, $\sigma_k$ are nonlinear parameters of consumers' taste heterogeneity, $\nu_{ik} \overset{\text{iid}}{\sim} N(0, 1)$ are random shocks to consumer $i$'s taste for product characteristic $k$, and $\epsilon_{ijt} \overset{\text{iid}}{\sim} T1EV$ is an idiosyncratic utility shock. 
 
@@ -18,11 +18,11 @@ This walkthrough follows BLP (1999) in using a Taylor approximation to replace $
 Let $K$ denote the number of product characteristics and $L = 1$ denote the number of demographic variables. Adopting the notation of [Gandhi and Nevo (2021)](https://www.nber.org/system/files/working_papers/w29257/w29257.pdf), the indirect utility function can be re-written as $$u_{ijt} = \delta_{jt} + \mu_{ijt} + \epsilon_{ijt},$$ where 
 
 * $\delta_{jt} = x_{jt} \beta_0 + \xi_{jt}$ is the mean utility of product $j$ in market $t$
-* $\mu_{ijt} = (p_{jt}, x_{jt}) \cdot (- \Gamma D_{it} + \Sigma \nu_{it})$, where
-    + $\Gamma = \begin{pmatrix} \alpha & 0 & \dotsm & 0 \end{pmatrix}^T$ is a $(K + 1) \times L$ matrix of non-linear parameters to be interacted with the $L \times 1$ demographic vector $D_{it} = \begin{pmatrix} D_{ilt} = \frac{1}{y_{it}} \end{pmatrix}$ 
-    + $\Sigma = \begin{pmatrix} 0 \\ & \beta_{\nu}^1 \\ & & \ddots \\ & & & \beta_{\nu}^k \end{pmatrix}$ is a $(K + 1) \times (K + 1)$ matrix of non-linear parameters to be interacted with the $(K + 1) \times 1$ vector of random raste shocks $\begin{pmatrix} \nu_{it}^0 & \dotsm & \nu_{it}^k \end{pmatrix}^T$.
+* $\mu_{ijt} = (p_{jt}, x_{jt}) \cdot (- \Gamma D_{it} + \Sigma \nu_{it})$, with
+    + $\Gamma = \begin{pmatrix} \alpha & 0 & \dotsm & 0 \end{pmatrix}^T$ denoting the $(K + 1) \times L$ matrix of non-linear parameters to be interacted with the $L \times 1$ demographic vector $D_{it} = \begin{pmatrix} D_{ilt} = \frac{1}{y_{it}} \end{pmatrix}$ 
+    + $\Sigma = \begin{pmatrix} 0 \\ & \beta_{\nu}^1 \\ & & \ddots \\ & & & \beta_{\nu}^k \end{pmatrix}$ denoting the $(K + 1) \times (K + 1)$ matrix of non-linear parameters to be interacted with the $(K + 1) \times 1$ vector of random raste shocks $\begin{pmatrix} \nu_{it}^0 & \dotsm & \nu_{it}^k \end{pmatrix}^T$.
     
-The parameters $\Gamma$ and $\Sigma$ are referred to as non-linear parameters, while $beta_0$ and $\gamma$ are referred to as linear parameters.
+The parameters $\Gamma$ and $\Sigma$ are referred to as non-linear parameters, while $\beta_0$ and $\gamma$ are referred to as linear parameters.
     
 Model-implied market shares are given by $$\sigma_{jt}(\delta_t, x_t, p_t; \Gamma, \Sigma) = \int \frac{\exp(\delta_{jt} + \mu_{ijt})}{1 + \sum_{k = 1}^{J_t} \exp(\delta_{kt} + \mu_{ikt})} dF_D(D_{it}) dF_\nu(\nu_{it})$$ where $F_D$ and $F_\nu$ are the distribution functions of the demographics and random taste shocks, respectively. 
 
@@ -303,7 +303,7 @@ def compute_shares(delta, gamma, sigma, X, p, product_markets, nu, D):
 
 ### Contraction Mapping
 
-For a given value of the non-linear parameters $\Gamma$ and $\Sigma$, BLP (1995) provide a contraction mapping technique that recovers the unique value of mean utilities $\delta$ which will equate model-implied market shares with observed market shares, i.e., $\delta_t$ in each market $t$ such that $\tilde \sigma_t(\delta_t; x_t, p_t, \Gamma, \Sigma, \hat F) = \hat s_t$. The iterative technique begins with a starting guess $\delta_t^0$, which is taken to be $\ln(\frac{\hat s_t}{\hat s_{0t}})$, and updates $$\delta_t^{r+1} = \delta_t^r + \ln(\hat s_t) - \ln(\tilde \sigma_t(\delta_t^r; x_t, p_t, \Gamma, \Sigma, \hat F))$$ until $\max(\delta_t^r - \delta_t^{r + 1}) < tol$. Proof of convergence is provided in the appendix of BLP (1995).
+For a given value of the non-linear parameters $\Gamma$ and $\Sigma$, BLP (1995) provide a contraction mapping technique that recovers the unique value of mean utilities $\delta$ which will equate model-implied market shares with observed market shares, i.e., $\delta_t$ in each market $t$ such that $\tilde \sigma_t(\delta_t; x_t, p_t, \Gamma, \Sigma, \hat F) = \hat s_t$. The iterative technique begins with a starting guess $\delta_t^0$, which is taken to be $\ln(\frac{\hat s_t}{\hat s_{0t}})$, and updates $$\delta_t^{r+1} = \delta_t^r + \ln(\hat s_t) - \ln(\tilde \sigma_t(\delta_t^r; x_t, p_t, \Gamma, \Sigma, \hat F))$$ until $\max(|\delta_t^r - \delta_t^{r + 1}|) < tol$. Proof of convergence is provided in the appendix of BLP (1995).
 
 The function ```contraction_mapping``` implements the contraction mapping directly with a function call to ```compute_shares``` and $tol = 10^{-12}$. [Nevo (2001)](https://onlinelibrary.wiley.com/doi/10.1111/j.1430-9134.2000.00513.x) provides some guidance on how to improve computational efficiency, such as taking exponents instead of logarithms and adjusting the tolerance level as the number of iterations increases.
 
