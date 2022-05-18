@@ -176,9 +176,9 @@ pre code {
 </div>
 
 
-<p>This is a detailed walkthrough of a replication of the point estimates (the first &quot;parameter estimates&quot; column of Table IV) in Berry, Levinsohn, and Pakes (1995). A repository with all of the code can be found <a href="https://github.com/ranielin/Berry-Levinsohn-and-Pakes-1995-Replication/">here</a>. Note that this walkthrough is for expository purposes, i.e., to convey the basic fundamentals of the BLP demand estimation routine in an easy to understand format, and may not incorporate the most up-to-date practices for demand estimation.</p>
-<div id="model-of-demand-and-supply" class="section level2">
-<h2>Model of Demand and Supply</h2>
+<p>This is a walkthrough of a replication of the point estimates (the first &quot;parameter estimates&quot; column of Table IV) in Berry, Levinsohn, and Pakes (1995). A repository with all of the code can be found <a href="https://github.com/ranielin/Berry-Levinsohn-and-Pakes-1995-Replication/">here</a>. Note that this walkthrough is for expository purposes, i.e., to convey the basic fundamentals of the BLP demand estimation routine in an easy to understand format.</p>
+<div id="model-of-demand-and-supply" class="section level3">
+<h3>Model of Demand and Supply</h3>
 <p>The indirect utility function that consumer <span class="math inline">\(i = 1, \dots I\)</span> in receives from selecting product <span class="math inline">\(j = 1, \dots, J_t\)</span> in market <span class="math inline">\(t = 1, \dots, T\)</span>, as specified in BLP (1995), is <span class="math display">\[u_{ijt} = -\alpha \ln(e^{m_t + \hat \sigma_y \nu_{iy}} - p_{jt}) + x_{jt}^T \bar \beta + \xi_{jt} + \sum_k \sigma_k x_{jkt} \nu_{ik} + \epsilon_{ijt}\]</span> and <span class="math display">\[u_{i0t} = -\alpha \ln(e^{m_t + \hat \sigma_y \nu_{iy}}) + \xi_{0t} + \sigma_0 \nu_{i0} + \epsilon_{i0t}\]</span> for the outside option, where <span class="math inline">\(\alpha\)</span> is the price coefficient, <span class="math inline">\(m_t\)</span> and <span class="math inline">\(\hat \sigma_y\)</span> are empirical income mean and standard deviation estimates, <span class="math inline">\(\nu_{iy} \overset{\text{iid}}{\sim} N(0, 1)\)</span> controls the distribution of income, <span class="math inline">\(p_{jt}\)</span> is the price of product <span class="math inline">\(j\)</span> in market <span class="math inline">\(t\)</span>, <span class="math inline">\(x_{jt}\)</span> is a vector of characteristics of product <span class="math inline">\(j\)</span> in market <span class="math inline">\(t\)</span>, <span class="math inline">\(\bar \beta\)</span> is a vector of linear parameters representing mean preferences for product characteristics, <span class="math inline">\(\xi_{jt}\)</span> is a latent demand shock, <span class="math inline">\(\sigma_k\)</span> are nonlinear parameters of consumers' taste heterogeneity, <span class="math inline">\(\nu_{ik} \overset{\text{iid}}{\sim} N(0, 1)\)</span> are random shocks to consumer <span class="math inline">\(i\)</span>'s taste for product characteristic <span class="math inline">\(k\)</span>, and <span class="math inline">\(\epsilon_{ijt} \overset{\text{iid}}{\sim} T1EV\)</span> is an idiosyncratic utility shock.</p>
 <p>This walkthrough follows BLP (1999) in using a Taylor approximation to replace <span class="math inline">\(-\alpha \ln(e^{m_t + \hat \sigma_y \nu_{iy}} - p_{jt})\)</span> with <span class="math inline">\(-\alpha \frac{p_{jt}}{y_{it}}\)</span>, where <span class="math inline">\(y_{it} = e^{m_t + \hat \sigma_y \nu_{iy}}\)</span> denotes the income of consumer <span class="math inline">\(i\)</span> in market <span class="math inline">\(t\)</span>, which also normalizes the outside good utility to zero.</p>
 <p>Let <span class="math inline">\(K\)</span> denote the number of product characteristics and <span class="math inline">\(L = 1\)</span> denote the number of demographic variables. Adopting the notation of <a href="https://www.nber.org/system/files/working_papers/w29257/w29257.pdf">Gandhi and Nevo (2021)</a>, the indirect utility function can be re-written as <span class="math display">\[u_{ijt} = \delta_{jt} + \mu_{ijt} + \epsilon_{ijt},\]</span> where</p>
@@ -193,6 +193,7 @@ pre code {
 <p>The parameters <span class="math inline">\(\Gamma\)</span> and <span class="math inline">\(\Sigma\)</span> are referred to as non-linear parameters, while <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\gamma\)</span> are referred to as linear parameters.</p>
 <p>Model-implied market shares are given by <span class="math display">\[\sigma_{jt}(\delta_t, x_t, p_t; \Gamma, \Sigma) = \int \frac{\exp(\delta_{jt} + \mu_{ijt})}{1 + \sum_{k = 1}^{J_t} \exp(\delta_{kt} + \mu_{ikt})} dF_D(D_{it}) dF_\nu(\nu_{it})\]</span> where <span class="math inline">\(F_D\)</span> and <span class="math inline">\(F_\nu\)</span> are the distribution functions of the demographics and random taste shocks, respectively.</p>
 <p>On the supply side, firms' marginal costs and profits, as specified in BLP (1995), are given by <span class="math display">\[\ln(mc_{jt}) = w_{jt}^T \gamma + \omega_{jt}\]</span> and <span class="math display">\[\Pi_{ft} = \sum_{j \in \mathcal{J}_{ft}} (p_{jt} - mc_{jt}) M_t \sigma_{jt}(\delta_t, x_t, p_t; \Gamma, \Sigma)\]</span> where <span class="math inline">\(mc_{jt}\)</span> is the marginal cost of producing product <span class="math inline">\(j\)</span> in market <span class="math inline">\(t\)</span>, <span class="math inline">\(w_{jt}\)</span> is a vector of <span class="math inline">\(K_s\)</span> observed cost-shifters, <span class="math inline">\(\omega_{jt}\)</span> is an unobserved latent supply shock, <span class="math inline">\(\Pi_{ft}\)</span> is the profit of firm <span class="math inline">\(f\)</span> operating in market <span class="math inline">\(t\)</span>, <span class="math inline">\(M_t\)</span> is the size of market <span class="math inline">\(t\)</span>, and <span class="math inline">\(\mathcal{J}_f\)</span> is the set of all products produced by firm <span class="math inline">\(f\)</span> in the same market. Assuming firms are competing in prices in a static Bertrand-Nash setting and taking the derivative of the profit function with respect to price yields the first-order condition <span class="math display">\[p = mc + \Omega^{-1} \sigma(p, \cdot)\]</span> where <span class="math inline">\(p\)</span>, <span class="math inline">\(mc\)</span>, and <span class="math inline">\(\sigma(p, \cdot)\)</span> are vectors of prices, marginal costs, and market shares (quantities) of all products in all markets and <span class="math inline">\(\Omega\)</span> is a matrix whose [<span class="math inline">\(j\)</span>, <span class="math inline">\(k\)</span>]'th entry is <span class="math inline">\(-\frac{d\sigma_{jt}}{dp_{kt}}\)</span> if products <span class="math inline">\(j\)</span>, <span class="math inline">\(k\)</span> are produced by the same firm in the same market and <span class="math inline">\(0\)</span> otherwise.</p>
+</div>
 <div id="data-setup" class="section level3">
 <h3>Data Setup</h3>
 <p>For this replication, market-level automobile data is obtained from the <a href="https://cran.r-project.org/web/packages/hdm/index.html">hdm</a> (high-dimensional metrics) package for R. Following the BLP (1995) specifications, there are <span class="math inline">\(K = 5\)</span> demand-side product characteristics (a constant term, horse power per weight, air conditioning, miles per dollar, and size) and <span class="math inline">\(K_s = 6\)</span> supply-side cost shifters (a constant, ln(horse power per weight), air, ln(miles per gallon), ln(size), and a trend term). The data also contain observed prices, market shares, and the logit term <span class="math inline">\(\ln(\frac{\hat s}{\hat s_0})\)</span>, which is the logarithm of the ratio of observed shares to ouside shares.</p>
@@ -584,6 +585,7 @@ def compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu,
 <li>Compute the vector of structural errors <span class="math inline">\(\xi_{full} = \delta_{full} - X_1 \theta_1\)</span>.</li>
 <li>Return the value of the GMM objective function <span class="math inline">\((\frac{1}{N} \xi_{full}^T Z_{full}) \Phi^{-1} (\frac{1}{N} Z_{full}^T \xi_{full})\)</span>.</li>
 </ol>
+<p>Note that in BLP (1995), observations are instead grouped by distinct automobile models and the GMM vectors <span class="math inline">\(g_{model}(\theta)\)</span> are constructed for each model rather than for each distinct product-market combination. It is straightforward to adapt this code in a similar way, if desired.</p>
 <p>The function <code>objective</code> computes and returns this value for a given weight matrix and values of the non-linear parameters.</p>
 <pre class="bash"><code>import numpy as np
 import scipy.linalg
@@ -645,7 +647,6 @@ def objective(theta_2, phi, delta_0, tol, s, X, W, p, Z, Z_s, product_markets, p
     print(theta_2, val)
     return val</code></pre>
 </div>
-</div>
 <div id="two-step-gmm-estimation" class="section level2">
 <h2>Two-Step GMM Estimation</h2>
 <p>With all of the required functions now defined, model parameters can now be estimated. Prior to estimation, all the relevant data is loaded in and random draws are taken using the <code>draw_population</code> function.</p>
@@ -673,7 +674,7 @@ T = np.unique(product_markets).size # number of markets
 K = X.shape[1] # number of characteristics per product
 K_s = W.shape[1] # number of cost-shifters
 M = Z.shape[1] # number of demand-side instruments
-N = Z_s.shape[1] # number of supply-side instruments
+M_s = Z_s.shape[1] # number of supply-side instruments
 
 # generate random draws separately in each market
 D_mean = np.array(pd.read_csv(&quot;./data/raw/meanincome.csv&quot;, header = None).iloc[:, 1])
@@ -701,7 +702,7 @@ delta_0 = np.array(pd.read_csv(&quot;./data/estimation/s_s0.csv&quot;))
 theta_2_start = np.array(pd.read_csv(&quot;./data/raw/theta_2_start.csv&quot;))[:, 1]
 tol = 1e-12
 bounds = ((0, np.inf),) * theta_2_start.shape[0]
-phi = np.identity(M + N)
+phi = np.identity(M + M_s)
 
 gmm_1 = scipy.optimize.minimize(objective, theta_2_start, args = (
     phi, delta_0, tol, s, X, W, p, Z, Z_s, product_markets, product_firms, nu, D
@@ -738,7 +739,7 @@ theta_1 = np.linalg.inv(X_full.T @ Z_full @ np.linalg.inv(phi) @ Z_full.T @ X_fu
     X_full.T @ Z_full @ np.linalg.inv(phi) @ Z_full.T @ delta_full) # IV projection
 
 xi = delta_full - X_full @ theta_1 # structural errors
-g_jt = Z_full *  xi # obs x (M + N) matrix, each row is g_jt for a unique j, t observation
+g_jt = Z_full *  xi # obs x (M + M_s) matrix, each row is g_jt for a unique j, t observation
 
 phi = (1 / obs) * g_jt.T @ g_jt # sample variance-covariance matrix of g_jt vectors 
 np.savetxt(&quot;./output/gmm_phi_estimate.csv&quot;, phi, delimiter=&quot;,&quot;)</code></pre>
