@@ -1,0 +1,694 @@
+---
+title: "Berry, Levinsohn, and Pakes (1995) Replication"
+author: 'Ranie Lin '
+date: "May 2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+This is a detailed walkthrough of a replication of the point estimates (the first "parameter estimates" column of Table IV) in Berry, Levinsohn, and Pakes (1995). A repository with all of the code can be found [here](https://github.com/ranielin/Berry-Levinsohn-and-Pakes-1995-Replication/). Note that this walkthrough is for expository purposes, i.e., to convey the basic fundamentals of the BLP demand estimation routine in an easy to understand format, and may not incorporate the most up-to-date practices for demand estimation.
+
+### Model of Demand and Supply
+
+The indirect utility function that consumer $i = 1, \dots I$ in receives from selecting product $j = 1, \dots, J_t$ in market $t = 1, \dots, T$, as specified in BLP (1995), is $$u_{ijt} = -\alpha \ln(e^{m_t + \hat \sigma_y \nu_{iy}} - p_{jt}) + x_{jt}^T \bar \beta + \xi_{jt} + \sum_k \sigma_k x_{jkt} \nu_{ik} + \epsilon_{ijt}$$ and $$u_{i0t} = -\alpha \ln(e^{m_t + \hat \sigma_y \nu_{iy}}) + \xi_{0t} + \sigma_0 \nu_{i0} + \epsilon_{i0t}$$ for the outside option, where $\alpha$ is the price coefficient, $m_t$ and $\hat \sigma_y$ are empirical income mean and standard deviation estimates, $\nu_{iy} \overset{\text{iid}}{\sim} N(0, 1)$ controls the distribution of income, $p_{jt}$ is the price of product $j$ in market $t$, $x_{jt}$ is a vector of characteristics of product $j$ in market $t$, $\bar \beta$ is a vector of linear parameters representing mean preferences for product characteristics, $\xi_{jt}$ is a latent demand shock, $\sigma_k$ are nonlinear parameters of consumers' taste heterogeneity, $\nu_{ik} \overset{\text{iid}}{\sim} N(0, 1)$ are random shocks to consumer $i$'s taste for product characteristic $k$, and $\epsilon_{ijt} \overset{\text{iid}}{\sim} T1EV$ is an idiosyncratic utility shock. 
+
+This walkthrough follows BLP (1999) in using a Taylor approximation to replace $-\alpha \ln(e^{m_t + \hat \sigma_y \nu_{iy}} - p_{jt})$ with $-\alpha \frac{p_{jt}}{y_{it}}$, where $y_{it} = e^{m_t + \hat \sigma_y}$ denotes the income of consumer $i$ in market $t$, which also normalizes the outside good utility to zero, and adopts the notation of [Gandhi and Nevo (2021)](https://www.nber.org/system/files/working_papers/w29257/w29257.pdf). Letting $K$ denote the number of product characteristics and $L = 1$ denote the number of demographic variables, the indirect utility function can be re-written as $$u_{ijt} = \delta_{jt} + \mu_{ijt} + \epsilon_{ijt},$$ where 
+
+* $\delta_{jt} = x_{jt} \beta_0 + \xi_{jt}$ is the mean utility of product $j$ in market $t$
+* $\mu_{ijt} = (p_{jt}, x_{jt}) \cdot (- \Gamma D_{it} + \Sigma \nu_{it})$, where
+    + $\Gamma = \begin{pmatrix} \alpha & 0 & \dotsm & 0 \end{pmatrix}^T$ is a $(K + 1) \times L$ matrix of non-linear parameters to be interacted with the $L \times 1$ demographic vector $D_{it} = \begin{pmatrix} D_{ilt} = \frac{1}{y_{it}} \end{pmatrix}$ 
+    + $\Sigma = \begin{pmatrix} 0 \\ & \beta_{\nu}^1 \\ & & \ddots \\ & & & \beta_{\nu}^k \end{pmatrix}$ is a $(K + 1) \times (K + 1)$ matrix of non-linear parameters to be interacted with the $(K + 1) \times 1$ vector of random raste shocks $\begin{pmatrix} \nu_{it}^0 & \dotsm & \nu_{it}^k \end{pmatrix}^T$.
+    
+The parameters $\Gamma$ and $\Sigma$ are referred to as non-linear parameters, while $beta_0$ and $\gamma$ are referred to as linear parameters.
+    
+Model-implied market shares are given by $$\sigma_{j}(\delta_t, x_t, p_t; \Gamma, \Sigma) = \int \frac{\exp(\delta_{jt} + \mu_{ijt})}{1 + \sum_{k = 1}^{J_t} \exp(\delta_{kt} + \mu_{ikt})} dF_D(D_{it}) dF_\nu(\nu_{it})$$ where $F_D$ and $F_\nu$ are the distribution functions of the demographics and random taste shocks, respectively. 
+
+On the supply side, firms' marginal costs and profits, as specified in BLP (1995), are given by $$\ln(mc_{jt}) = w_{jt}^T \gamma + \omega_{jt}$$ and $$\Pi_{ft} = \sum_{j \in \mathcal{J}_{ft}} (p_{jt} - mc_{jt}) M_t \sigma_{jt}(\delta_t, x_t, p_t; \Gamma, \Sigma)$$ where $mc_{jt}$ is the marginal cost of producing product $j$ in market $t$, $w_{jt}$ is a vector of observed cost-shifters, $\omega_{jt}$ is an unobserved latent supply shock, $\Pi_{ft}$ is the profit of firm $f$ operating in market $t$, $M_t$ is the size of market $t$, and $\mathcal{J}_f$ is the set of all products produced by firm $f$ in the same market. Assuming firms are competing in prices in a static Bertrand-Nash setting and taking the derivative of the profit function with respect to price yields the first-order condition $$p = mc + \Omega^{-1} \sigma(p, \cdot)$$ where $p$, $mc$, and $\sigma(p, \cdot)$ are vectors of prices, marginal costs, and market shares (quantities) of all products in all markets and $\Omega$ is a matrix whose [$j$, $k$]'th entry is $-\frac{d\sigma_{jt}}{dp_{kt}}$ if products $j$, $k$ are produced by the same firm in the same market and $0$ otherwise.
+
+### Data Setup
+
+For this replication, market-level automobile data is obtained from the [hdm](https://cran.r-project.org/web/packages/hdm/index.html) (high-dimensional metrics) package for R. Following the BLP (1995) specifications, there are $K = 5$ demand-side product characteristics (a constant term, horse power per weight, air conditioning, miles per dollar, and size) and $K_s = 6$ supply-side cost shifters (a constant, ln(horse power per weight), air, ln(miles per gallon), ln(size), and a trend term). The data also contain observed prices, market shares, and the logit term $\ln(\frac{\hat s}{\hat s_0})$, which is the logarithm of the ratio of observed shares to ouside shares.
+
+Letting $N = \sum_t J_t$ denote the total number of observations, the data consists of $X$, an $N \times K$ matrix of product characteristics; $W$, an $N \times K_s$ matrix of cost-shifters; $p$, an $N \times 1$ vector of prices; $\hat s$, an $N \times 1$ vector of market shares; and separate vectors that encode the market and firm corresponding to each of the $N$ observations.
+
+A few minor modifications are made to the data. The listed price in the dataset appears to have been demeaned, so the price is shifted upwards to reflect the prices in the original data. The trend term is also slightly modified to match the original data.
+
+```{bash, eval = FALSE}
+# organize market-level automobile data from the hdm
+# package for estimation
+
+library(hdm)
+library(tidyverse)
+
+dat <- BLP$BLP %>%
+  mutate(price = price + 11.761,
+         year = cdid + 1970,
+         constant = 1,
+         trend = trend + 71,
+         ln_hpwt = log(hpwt),
+         ln_mpg = log(mpg),
+         ln_space = log(space)) %>%
+  rename(market = cdid,
+         product = model.id,
+         firm = firm.id) %>%
+  arrange(market, product)
+
+# exogenous product characteristics
+X <- dat %>%
+  select(constant, hpwt, air, mpd, space) 
+
+# cost shifters
+W <- dat %>%
+  select(constant, ln_hpwt, air, ln_mpg, ln_space, trend)
+
+# prices
+p <- dat %>%
+  select(price)
+
+# observed market shares
+s <- dat %>%
+  select(share)
+
+# ln(market share / outside share)
+s_s0 <- dat %>%
+  select(y)
+
+# number of products in each market t = 1, ..., T
+product_markets <- dat %>%
+  select(market)
+
+# firm producing each product
+product_firms <- dat %>%
+  select(firm)
+  
+write_csv(dat, "./data/estimation/BLP_1995_data.csv")
+write_csv(X, "./data/estimation/X.csv")
+write_csv(W, "./data/estimation/W.csv")
+write_csv(s, "./data/estimation/s.csv")
+write_csv(s_s0, "./data/estimation/s_s0.csv")
+write_csv(product_markets, "./data/estimation/product_markets.csv")
+write_csv(product_firms, "./data/estimation/product_firms.csv")
+```
+
+### Instruments
+
+Identification of the model relies upon valid instruments that are mean independent of $\xi_{jt}$ (on the demand-side) and $\omega_{jt}$ (on the supply-side). BLP (1995) use three sets of demand instruments: the product characteristics $x_{jt}$ themselves, sums of the characteristics of other products produced by the same firm in the same market $\sum_{k \in \mathcal{F}_{f_t}, k \ne j}x_{kt}$, and sums of the characteristics of products produced by rival firms $\sum_{k \not\in \mathcal{F}_{f_t}}x_{kt}$. 
+
+Supply-side instruments are constructed in the same way with the observed cost-shifters. In total, there are $3K = 15$ demand-side instruments $Z = \begin{pmatrix} z_1, \dots, z_{15} \end{pmatrix}$ and $3K_s = 18$ supply-side instruments $Z_s = \begin{pmatrix} z_{s_1}, \dots, z_{s_{18}} \end{pmatrix}$, where each $z_j$ and $z_{s_j}$ is a length $N$ vector. The excluded demand variable, miles per dollar, is added as a supply-side instrument, while the supply-side "rival" instrument corresponding to the "trend" variable is discarded due to near-perfect collinearity. 
+
+```{bash, eval = FALSE}
+# generate "BLP instruments" which come entirely from observed and
+# assumed exogenouos product characteristics and cost-shifters
+
+library(hdm)
+library(tidyverse)
+
+dat <- read_csv("./data/estimation/BLP_1995_data.csv")
+X <- read_csv("./data/estimation/X.csv")
+W <- read_csv("./data/estimation/W.csv")
+
+# create demand-side instruments from X
+
+# first set of instruments
+# Z1, exogenous observed characteristics x_jt
+Z1 <- X 
+
+# second and third sets of instruments
+# Z2, sum of x_j't where j' is also produced by firm j
+# Z3, sum of x_j't where j' is produced by firms other than firm j
+Z2 <- data.frame(matrix(0, nrow(X), ncol(X))) 
+Z3 <- data.frame(matrix(0, nrow(X), ncol(X))) 
+colnames(Z2) <- paste0("same_firm_", colnames(X))
+colnames(Z3) <- paste0("rival_firm_", colnames(X))
+
+for(idx in 1:nrow(dat)){
+  this_market <- dat$market[idx]
+  this_product <- dat$product[idx]
+  this_firm <- dat$firm[idx]
+  
+  # sum across other products produced by the same firm
+  same_firm_products <- dat %>%
+    slice(-idx) %>%
+    filter(market == this_market & firm == this_firm) %>%
+    select(colnames(X)) %>%
+    colSums()
+  
+  # some across products produced by rival firms
+  rival_firm_products <- dat %>%
+    filter(market == this_market & firm != this_firm) %>%
+    select(colnames(X)) %>%
+    colSums()
+  
+  Z2[idx, ] <- same_firm_products
+  Z3[idx, ] <- rival_firm_products
+  
+}
+
+Z <- cbind(Z1, Z2, Z3)
+write_csv(Z, "./data/estimation/Z.csv")
+
+# create supply-side instruments from W
+
+# first set of instruments
+# Z1, exogenous observed cost shifters w_jt
+Z1 <- W 
+
+# second and third sets of instruments
+# Z2, sum of w_j't where j' is also produced by firm j
+# Z3, sum of w_j't where j' is produced by firms other than firm j
+Z2 <- data.frame(matrix(0, nrow(W), ncol(W))) 
+Z3 <- data.frame(matrix(0, nrow(W), ncol(W))) 
+colnames(Z2) <- paste0("same_firm_", colnames(W))
+colnames(Z3) <- paste0("rival_firm_", colnames(W))
+
+for(idx in 1:nrow(dat)){
+  this_market <- dat$market[idx]
+  this_product <- dat$product[idx]
+  this_firm <- dat$firm[idx]
+  
+  # sum across other products produced by the same firm
+  same_firm_products <- dat %>%
+    slice(-idx) %>%
+    filter(market == this_market & firm == this_firm) %>%
+    select(colnames(W)) %>%
+    colSums()
+  
+  # some across products produced by rival firms
+  rival_firm_products <- dat %>%
+    filter(market == this_market & firm != this_firm) %>%
+    select(colnames(W)) %>%
+    colSums()
+  
+  Z2[idx, ] <- same_firm_products
+  Z3[idx, ] <- rival_firm_products
+  
+}
+
+Z_s <- cbind(Z1, Z2, Z3, X$mpd) %>%
+  select(-rival_firm_trend) # remove due to collinearity
+write_csv(Z_s, "./data/estimation/Z_s.csv")
+```
+
+### Random Draws
+
+Prior to estimation, $R = 500$ random draws are taken separately in each market. The random draws $\hat F = \{\hat \nu_{it}, \hat D_{it}\}$ are simulated random taste shocks $\{\hat \nu_{it}\}_{i = 1}^R \sim N(0, 1)$ and incomes $\{\ln(\hat y_{it}) \}_{i = 1}^R \sim N(\mu_{dt}, \sigma_{dt}^2)$, where $\hat D_{it} = \frac{1}{\hat y_{it}}$ and $\mu_{dt}$ and $\sigma_{dt}$ are empirical estimates of the mean $m_t$ and standard deviation $\sigma_y$ of income. These estimates, which come from Census data, are taken from [Gentzkow and Shapiro (2016)](https://web.stanford.edu/~gentzkow/research/blp_replication.zip)'s replication files.
+
+The function `draw_population` returns arrays of draws given the specified parameters. These draws, which will remain fixed throughout the entire estimation process, will be used for numerical approximation of market shares and share-price derivatives.
+
+```{bash, eval = FALSE}
+import numpy as np
+
+def draw_population(R, T, K, nu_mean, nu_var, D_mean = None, D_var = None):
+# generate random draws of consumer taste shocks nu_it ~ Normal(nu_mean, nu_var) and
+# consumer demographics D_it ~ Normal(D_mean_t, D_var_t) in each market separately
+# inputs:
+#   R, number of random draws per market
+#   T, number of distinct markets
+#   K, number of observed product characteristics
+#   nu_mean, mean of distribution of agents' heterogeneous tastes
+#   nu_var, variance of distribution of agents' heterogeneous tastes
+#   D_mean, L x T array of means of demographic variables l = 1, ..., L 
+#           in markets t = 1, ..., T
+#   D_var, L x T array of variance of demographic variables l = 1, ..., L 
+#          in markets t = 1, ..., T
+# outputs:
+#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+#      in markets t = 1, ..., T
+
+    # draw hetereogeneous taste shocks from parametric distribution
+    # in BLP, nu_alpha = 0 
+    nu_alpha = np.zeros((1, R, T))
+    nu_beta = np.random.normal(nu_mean, pow(nu_var, 0.5), (K, R, T))
+    nu = np.concatenate((nu_alpha, nu_beta), axis = 0)
+
+    if D_mean is not None:
+        if np.ndim(D_mean) == 1:
+            L = 1
+        else:
+            L = np.shape(D_mean)[0]
+
+        # draw consumer demographics from given empirical distribution
+        D = np.transpose(np.random.normal(D_mean, pow(D_var, 0.5), (R, L, T)), (1, 0, 2))
+        return [nu, D]
+    else:
+        return nu
+```
+
+### Computing Market Shares
+
+Model-implied market shares $$\sigma_{j}(\delta_t, x_t, p_t; \Gamma, \Sigma) = \int \frac{\exp(\delta_{jt} + \mu_{ijt})}{1 + \sum_{k = 1}^{J_t} \exp(\delta_{kt} + \mu_{ikt})} dF_D(D_{it}) dF_\nu(\nu_{it})$$ are numerically approximated using the random draws as $$\tilde \sigma_{jt}(\delta_t; \Gamma, \Sigma, p_t, \hat F) = \frac{1}{R} \sum_{i=1}^R \frac{\exp(\delta_{jt} + \mu_{ijt})}{\sum_{k = 1}^{J_t} \exp(\delta_{kt} + \mu_{ikt})}.$$ Note that different values of simulated draws $\{\hat \nu_{it}, \hat D_{it}\}$ will enter the approximated market share equation through the term $\mu_{ijt}$. The function ``compute_shares`` returns the approximated market-implied market shares given values of the mean utilities and non-linear parameters, market data, and random draws.
+
+In BLP (1995), importance sampling is utilized in the approximation of market shares to reduce simulation error. This technique assigns different sampling weights to the unobservables. More details on this procedure can be found in BLP (1995) and BLP (1999), but for simplicity, this replication uses only a straightforward average over simulated draws to approximate market shares.
+
+```{bash, eval = FALSE}
+import numpy as np
+
+def compute_shares(delta, gamma, sigma, X, p, product_markets, nu, D):
+# computes model-implied market shares given mean utilities and non-linear 
+# parameters using simulated draws of individuals
+# inputs:
+#   delta, vector of mean utilities of each product-market combination
+#   gamma, (K + 1) x L matrix of random coefficients of demographics
+#   sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
+#          unobserved heterogeneity 
+#   X, matrix of observed characteristics of each product in each market
+#   p, vector of prices of each product in each market
+#   product_markets, encodes the market corresponding to each product
+#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+#      in markets t = 1, ..., T
+# output:
+#   s_model, vector of model-implied shares of each product in each market
+#   f_model, matrix of model-implied individual choice probabilities of each product
+#            in each market conditional on values of nu_i and D_i
+
+    K = X.shape[1] # number of product characteristics
+    R = nu.shape[1] # number of simulated individuals
+    s_model = np.zeros(delta.size) # initialize predicted shares
+    f_model = np.zeros((delta.size, R)) # initialize choice probabilities
+    
+    # iterate across markets, computing shares within each market separately
+    for t in np.unique(product_markets):
+
+        # subset relevant attributes in each given market
+        nu_t = nu[:, :, t-1] 
+        D_t = D[:, :, t-1]
+        J_t = np.where(product_markets == t)[0].size
+        X_t = X[np.where(product_markets == t)[0], :]
+        p_t = p[np.where(product_markets == t)[0], :]
+
+        # mu_it is a J x R matrix of preference shocks for each product-individual combination
+        mu_it =  np.matmul(np.matmul(np.concatenate((p_t, X_t), axis = 1), sigma), nu_t) - np.matmul(
+            np.matmul(np.concatenate((p_t, X_t), axis = 1), gamma), D_t) 
+        delta_jt = np.tile(delta[np.where(product_markets == t)[0]], R)
+
+        # multinomial form for implied choice probabilities
+        f_ijt = np.exp(delta_jt + mu_it) / (1 + np.tile(
+            np.sum(np.exp(delta_jt + mu_it), axis = 0), (J_t, 1)))
+        f_model[np.where(product_markets == t)[0], :] = f_ijt
+
+        # estimate market shares as equally-weighted average across individuals
+        s_jt = np.average(f_ijt, axis = 1)
+        s_model[np.where(product_markets == t)[0]] = s_jt
+        
+    s_model = s_model[:, np.newaxis]
+    return [s_model, f_model]
+```
+
+### Contraction Mapping
+
+For a given value of the non-linear parameters $\Gamma$ and $\Sigma$, BLP (1995) provide a contraction mapping technique that recovers the unique value of mean utilities $\delta$ which will equate model-implied market shares with observed market shares, i.e., $\delta_t$ in each market $t$ such that $\tilde \sigma_t(\delta_t; \Gamma, \Sigma, p_t, \hat F) = \hat s_t$. The iterative technique begins with a starting guess $\delta_t^0$, which is taken to be $\ln(\frac{\hat s_t}{\hat s_{0t}})$, and updates $$\delta_t^{r+1} = \delta_t^r + \ln(\hat s_t) - \ln(\tilde \sigma_t(\delta_t^r; \Gamma, \Sigma, p_t, \hat F))$$ until $\max(\delta_t^r - \delta_t^{r + 1}) < tol$. Proof of convergence is provided in the appendix of BLP (1995).
+
+The function ```contraction_mapping``` implements the contraction mapping directly with a function call to ```compute_shares``` and $tol = 10^{-12}$. [Nevo (2001)](https://onlinelibrary.wiley.com/doi/10.1111/j.1430-9134.2000.00513.x) provides some guidance on how to improve computational efficiency, such as taking exponents instead of logarithms and adjusting the tolerance level as the number of iterations increases.
+
+```{bash, eval = FALSE}
+import numpy as np
+
+def contraction_mapping(delta_0, tol, gamma, sigma, s, X, p, product_markets, nu, D):
+# solves for the vector of mean utilities that equates model-predicted shares
+# with observed shares for given values of non-linear utility parameters
+# using the BLP contraction mapping function
+# inputs:
+#   delta_0, vector of initial guesses of product market mean utilities
+#   tol, tolerance level at which to stop the recursive iteration
+#   gamma, (K + 1) x L matrix of random coefficients of demographics
+#   sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
+#          unobserved heterogeneity 
+#   s, vector of observed market shares of each product in each market
+#   X, matrix of observed product demand characteristics in each market
+#   p, vector of prices of each product in each market
+#   product_markets, encodes the market corresponding to each product
+#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+#      in markets t = 1, ..., Tt
+# output:
+#   delta, vector of mean utilities equating predicted shares with observed
+#          shares
+
+    error = 1.0
+    delta_old = delta = delta_0
+
+    # iteratively update delta until ||delta - delta_old|| < tol
+    while error > tol:
+        delta_old = delta
+        delta = delta_old + np.log(s) - np.log(
+            compute_shares(delta_old, gamma, sigma, X, p, product_markets, nu, D)[0])
+        error = np.max(np.abs(delta - delta_old)) 
+  
+    return delta
+```
+
+### Computing Share-Price Derivatives
+
+In the logit model without random coefficients, share-price derivatives are $$\frac{d\sigma_{jt}}{dp_{kt}} = \begin{cases} -\alpha p_{jt}(1 - \sigma_{jt}) & \text{if} \quad j = k \\ \alpha p_{kt} \sigma_{kt} & \text{if} \quad j \ne k \end{cases}.$$ This can be derived by simply taking the derivative of the share equations, which are in the standard multinomial logit form, with respect to prices.
+
+In the mixed logit model with random coefficients, the share-price derivatives are $$\frac{d\sigma_{jt}}{dp_{kt}} = \begin{cases} -\int \alpha_i f_{ijt}(1 - f_{ijt}) dF_D(D_{it}) dF_\nu(\nu_{it}) & \text{if} \quad j = k \\ \int \alpha_i f_{ijt} f_{ikt} dF_D(D_{it}) dF_\nu(\nu_{it}) & \text{if} \quad j \ne k \end{cases},$$ where $\alpha_i = \frac{\alpha}{y_i}$ and $f_{ijt} = \frac{\exp(\delta_{jt} + \mu_{ijt})}{1 + \sum_{k = 1}^{J_t} \exp(\delta_{kt} + \mu_{ikt})}$ is the probability, conditional on $\nu_{it}$ and $D_{it}$, of choosing product $j$ in market $t$.
+
+Similar to in the computation of market shares, the share-price derivatives are numerically approximated using the random draws as $$\frac{d \tilde \sigma_{jt}}{d p_{kt}} = \begin{cases} - \frac{1}{R} \sum_{i = 1}^R [\frac{\alpha}{y_{it}} f_{ijt}(1 - f_{ijt})] & \text{if} \quad j = k \\ \frac{1}{R}[\sum_{i = 1}^R \frac{\alpha}{y_{it}} f_{ijt} f_{ikt}] & \text{if} \quad j \ne k \end{cases}.$$ In this case, values of the simulated draws $\{\hat \nu_{it}, \hat D_{it}\}$ enter the approximated share-price derivative equation through the $f_{ijt}$ terms. The function ``compute_omega`` returns a matrix $\Omega$ whose [$j$, $k$]'th entry is equal to $-\frac{d \tilde \sigma_{jt}}{d p_{kt}}$ if products $j$ and $k$ are jointly produced by the same firm in market $t$ and $0$ otherwise. 
+
+Note again that in contrast to the original BLP (1995) paper, this replication is not using importance sampling when numerically approximating the share-price derivatives.
+
+```{bash, eval = FALSE}
+import numpy as np
+
+def compute_omega(delta, gamma, sigma, X, p, product_markets, product_firms, nu, D):
+# computes derivatives of shares with respect to prices given mean utilities 
+# and non-linear parameters using simulated draws of individuals
+# inputs:
+#   delta, vector of mean utilities of each product-market combination
+#   gamma, (K + 1) x L matrix of random coefficients of demographics
+#   sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
+#          unobserved heterogeneity 
+#   X, matrix of observed characteristics of each product in each market
+#   p, vector of prices of each product in each market
+#   product_markets, encodes the market corresponding to each product
+#   product_firms, encodes the firm corresponding to each product
+#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+#      in markets t = 1, ..., T
+# output:
+#   omega, matrix where entry [j, k] is the (negative) derivative of share j with 
+#   respect to price k if the two products are produced by the same firm in the same 
+#   market, and zero otherwise
+
+    omega = np.zeros((X.shape[0], X.shape[0]))
+    f_model = compute_shares(delta, gamma, sigma, X, p, product_markets, nu, D)[1]
+
+    # iterate through markets, computing share-price derivatives separately in each
+    # market
+    for t in np.unique(product_markets):
+        f_t = product_firms[np.where(product_markets == t)[0]] # list of firms in market t
+        D_t = D[:, :, t-1] # simulated consumer demographics in market t
+        alpha = np.matmul(gamma[0, :], D_t) # simulated price coefficients alpha_i
+
+        # iterate through each firm in market t
+        for f in np.unique(f_t):
+            # get indices of other products produced by firm f in market t
+            f_idx = np.intersect1d(
+                np.where(product_markets == t)[0], np.where(product_firms == f)[0])
+
+            # compute -ds_j/dp_k 
+            for j in f_idx:
+                for k in f_idx:
+                    if j == k:
+                        omega[j, k] = np.average(alpha * f_model[j, :] * (1 - f_model[j, :]))
+                    else:
+                        omega[j, k] = np.average(- alpha * f_model[j, :] * f_model[k, :])
+
+    return omega
+```
+
+### Computing Marginal Costs
+
+From the first-order condition for firm profits and given a matrix $\Omega$ of share-price derivatives from ``compute_omega``, marginal costs can be easily recovered from the data as $$mc = p - \Omega^{-1} \hat s.$$ The function ``compute_mc`` performs this simple computation with a function call to ``compute_omega`` and also makes an adjustment to ensure marginal costs are non-negative by applying a (usually non-binding) lower bound of $mc_{jt} >= 0.001$ for all $j$, $t$.
+
+```{bash, eval = FALSE}
+import numpy as np
+
+def compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu, D):
+# solve for marginal costs for given values of non-linear parameters and mean utilities,
+# assuming firms are setting prices in a Bertrand-Nash equilibrium
+# inputs:
+#   delta, vector of mean utilities of each product-market combination
+#   gamma, (K + 1) x L matrix of random coefficients of demographics
+#   sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
+#          unobserved heterogeneity 
+#   s, vector of observed market shares of each product in each market
+#   X, matrix of observed product demand characteristics in each market
+#   p, vector of prices of each product in each market
+#   product_markets, encodes the market corresponding to each product
+#   product_firms, encodes the firm corresponding to each product
+#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+#      in markets t = 1, ..., T
+# output:
+#   mc, vector of marginal costs of each product in each market
+
+    omega = compute_omega(delta, gamma, sigma, X, p, product_markets, product_firms, nu, D)
+    mc = p - np.matmul(np.linalg.inv(omega), s) # first-order Bertrand equilibrium condition
+    mc[mc < 0] = 0.001 # ensures marginal costs are nonnegative
+    return mc
+```
+
+### GMM Objective Function
+
+The objective function to minimize with respect to model parameters $\theta$ is $$Q(\theta) = (\frac{1}{N} \sum_{j, t} g_{jt}(\theta)^T) \Phi^{-1} (\frac{1}{N} \sum_{j, t} g_{jt}(\theta)),$$ where $$g_{jt}(\theta) = \begin{pmatrix} z_{1jt} \xi_{jt}(\theta) \\ \vdots \\z_{15jt} \xi_{jt}(\theta) \\ z_{s_{1jt}} \omega_{jt}(\theta) \\ \vdots \\ z_{s_{18jt}} \omega_{jt}(\theta) \end{pmatrix}$$ is a vector of demand and supply instruments interacted with demand and supply structural errors and $\Phi$ is an appropriate GMM weight matrix.
+
+For a given value of non-linear parameters $\theta_2 = (\Gamma, \Sigma)$ and weight matrix $\Phi$, the objective function is calculated as follows:
+
+1. Obtain the mean utilities $\delta_{jt}$ that equate model-implied market shares with observed shares using ``contraction_mapping`` and marginal costs using ``compute_mc``.
+2. Denote $X_{full} = \begin{pmatrix} X & 0 \\ 0 & W \end{pmatrix}$, $Z_{full} = \begin{pmatrix} Z & 0 \\ 0 & Z_s \end{pmatrix}$, $\delta_{full} = \begin{pmatrix} \delta \\\ln(mc) \end{pmatrix}$, and $\xi_{full} = \begin{pmatrix} \xi \\ \omega \end{pmatrix}$. Recover the linear parameters $$\theta_1 = \begin{pmatrix} \beta_0 \\ \gamma\end{pmatrix} = (X_{full}^T Z_{full} \Phi^{-1} Z_{full}^T X_{full})^{-1}X_{full} Z_{full} \Phi^{-1} Z_{full}^T \delta_{full}.$$ This is simply the 2SLS IV projection for the regression equation $\delta_{full} = X_{full} \theta_1 + \xi_{full}$ with instrument matrix $Z_{full}$ and projection matrix $Z_{full} \Phi^{-1} Z_{full}^T$.
+3. Compute the vector of structural errors $\xi_{full} = \delta_{full} - X_1 \theta_1$.
+4. Return the value of the GMM objective function $(\frac{1}{N} \xi_{full}^T Z_{full}) \Phi^{-1} (\frac{1}{N} Z_{full}^T \xi_{full})$.
+
+The function ``objective`` computes and returns this value for a given weight matrix and values of the non-linear parameters.
+
+```{bash, eval = FALSE}
+import numpy as np
+import scipy.linalg
+
+def objective(theta_2, phi, delta_0, tol, s, X, W, p, Z, Z_s, product_markets, product_firms, nu, D):
+# compute GMM objective function
+# inputs:
+#   theta_2, length L + 1 vector [alpha, sigma_1, ..., sigma_L] 
+#            of non-linear parameters
+#   phi, GMM weight matrix
+#   delta_0, vector of initial guesses of product market mean utilities
+#   tol, tolerance level at which to stop the contraction mapping iteration
+#   s, vector of observed market shares of each product in each market
+#   X, matrix of observed product demand characteristics in each market
+#   W, matrix of observed supply-side cost shifters in each market
+#   p, vector of prices of each product in each market
+#   Z, matrix of demand-side instruments
+#   Z_s, matrix of supply-side instruments
+#   product_markets, encodes the market corresponding to each product
+#   product_firms, encodes the firm corresponding to each product
+#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+#      in markets t = 1, ..., Tt
+# output:
+#   val, value of GMM objective function at the given parameters
+
+    obs = X.shape[0] # number of total observations
+    K = X.shape[1] # number of product characteristics
+    K_s = W.shape[1] # number of cost-shifters
+
+    # set gamma = [alpha, 0, ..., 0]^T, sigma = diag(0, beta_nu(1), ..., beta_nu(L))
+    gamma = np.zeros((K + 1, 1))
+    gamma[0] = theta_2[0]
+
+    sigma = np.zeros((K + 1, K + 1))
+    np.fill_diagonal(sigma, np.append([0], theta_2[1:(K + 1)]))
+
+    # solve for mean utilities and marginal costs at the given non-linear parameters
+    delta = contraction_mapping(delta_0, tol, gamma, sigma, s, X, p, product_markets, nu, D)
+    log_mc = np.log(compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu, D))
+
+    # combine demand-side and supply-side data and instruments
+    X_full = scipy.linalg.block_diag(X, W) # product characteristics + cost-shifters
+    Z_full = scipy.linalg.block_diag(Z, Z_s) # demand-side instruments + supply-side instruments
+    delta_full = np.vstack([delta, log_mc]) # mean utilities + log(marginal costs)
+
+    # IV projection to recover linear parameters
+    theta_1 = np.linalg.inv(X_full.T @ Z_full @ np.linalg.inv(phi) @ Z_full.T @ X_full) @ (
+        X_full.T @ Z_full @ np.linalg.inv(phi) @ Z_full.T @ delta_full) 
+
+    # structural errors
+    xi = delta_full - X_full @ theta_1
+
+    # GMM objective function value
+    g = (1 / obs) * Z_full.T @ xi
+    val = float(g.T @ np.linalg.inv(phi) @ g)
+
+    print(theta_2, val)
+    return val
+```
+
+## Two-Step GMM Estimation
+
+With all of the required functions now defined, model parameters can now be estimated. Prior to estimation, all the relevant data is loaded in and random draws are taken using the ``draw_population`` function.
+```{bash, eval = FALSE}
+import numpy as np
+import pandas as pd
+
+from draw_population import *
+
+np.random.seed(123)
+
+# load data 
+X = np.array(pd.read_csv("./data/estimation/X.csv")) # product characteristics
+W = np.array(pd.read_csv("./data/estimation/W.csv")) # cost-shifters
+product_markets = np.array(
+    pd.read_csv("./data/estimation/product_markets.csv")) # market of each product
+product_firms = np.array(
+    pd.read_csv("./data/estimation/product_firms.csv")) # firm producing each product
+p = np.array(pd.read_csv("./data/estimation/p.csv")) # prices
+s = np.array(pd.read_csv("./data/estimation/s.csv")) # observed shares
+Z = np.array(pd.read_csv("./data/estimation/Z.csv")) # demand-side instruments
+Z_s = np.array(pd.read_csv("./data/estimation/Z_s.csv")) # supply-side instruments
+
+obs = X.shape[0] # number of total observations
+T = np.unique(product_markets).size # number of markets
+K = X.shape[1] # number of characteristics per product
+K_s = W.shape[1] # number of cost-shifters
+M = Z.shape[1] # number of demand-side instruments
+N = Z_s.shape[1] # number of supply-side instruments
+
+# generate random draws separately in each market
+D_mean = np.array(pd.read_csv("./data/raw/meanincome.csv", header = None).iloc[:, 1])
+D_var = np.tile(
+    pow(pd.read_csv("./data/raw/sdincome.csv", header = None).iloc[:, 0], 2), D_mean.size)
+nu_mean = 0
+nu_var = 1
+
+R = 500 # number of simulations per market
+nu, log_y = draw_population(R, T, K, nu_mean, nu_var, D_mean, D_var)
+D = 1/np.exp(log_y) # 1 / exp(log(income)) = 1/y_i
+```
+
+The objective function ``objective`` is minimized using the L-BFGS-B gradient-based search routine with the original parameter estimates published in BLP (1995) used as the starting search values. All elements of $\theta_2$ are constrained to be non-negative.
+
+For the GMM estimator to be efficient, the weight matrix $\Phi$ should be proportional to $E[g(\theta_0)g(\theta_0)^T]$ with $g(\theta_0) = \begin{pmatrix} z_{1}\xi(\theta_0) & \dotsm & z_{15} \xi_{jt}(\theta_0) & z_{s_{1}} \omega(\theta_0) & \dotsm & z_{s_{18}} \omega(\theta_0) \end{pmatrix}^T$ and $\theta_0$ denoting the true parameter values. Since $\theta_0$ is unknown, two-step feasible GMM estimation is implemented, which produces an asymptotically efficient estimate of $\theta$ by using a consistent estimate of $E[g(\theta_0)g(\theta_0)^T]$ as the weight matrix.
+
+In the first step, the identity matrix is used as the weight matrix, $\Phi_{GMM1} = I$, and first stage estimates $\hat \theta_{GMM1}$ of $\theta$ are obtained.
+
+```{bash, eval = FALSE}
+import numpy as np
+import pandas as pd
+import scipy.linalg
+import scipy.optimize
+
+from contraction_mapping import *
+from compute_mc import *
+from objective import *
+
+delta_0 = np.array(pd.read_csv("./data/estimation/s_s0.csv"))
+theta_2_start = np.array(pd.read_csv("./data/raw/theta_2_start.csv"))[:, 1]
+tol = 1e-12
+bounds = ((0, np.inf),) * theta_2_start.shape[0]
+phi = np.identity(M + N)
+
+gmm_1 = scipy.optimize.minimize(objective, theta_2_start, args = (
+    phi, delta_0, tol, s, X, W, p, Z, Z_s, product_markets, product_firms, nu, D
+    ), method = 'L-BFGS-B', bounds = bounds, options = {
+        'maxiter': 1000, 'maxfun': 1000, 'eps': 1e-3}, tol = 1e-4)
+
+theta_2_initial = gmm_1.x
+theta_2_initial_df = pd.DataFrame(theta_2_initial)
+theta_2_initial_df.insert(0, "var", [
+    "alpha_price", "sigma_constant", "sigma_hpwt", "sigma_air", "sigma_mpd", "sigma_size"])
+theta_2_initial_df.rename({0:'est'}, axis = 1, inplace = True)
+theta_2_initial_df.to_csv("./output/gmm_1_nonlinear_estimates.csv", sep = ",", index = False)
+```
+
+In the second step, $E[g(\theta)g(\theta)^T]$ is estimated using the parameter estimates from the first step. More precisely, the weight matrix is set as $$\Phi_{GMM2} = \frac{1}{N} \sum_{j, t} g_{jt}(\hat \theta_{GMM1}) g_{jt}(\hat \theta_{GMM1})^T.$$
+
+```{bash, eval = FALSE}
+import numpy as np
+import scipy.linalg
+
+from contraction_mapping import *
+from compute_mc import *
+
+gamma = np.zeros((K + 1, 1))
+gamma[0] = theta_2_initial[0]
+
+sigma = np.zeros((K + 1, K + 1))
+np.fill_diagonal(sigma, np.append([0], theta_2_initial[1:(K + 1)]))
+
+delta = contraction_mapping(delta_0, tol, gamma, sigma, s, X, p, product_markets, nu, D)
+log_mc = np.log(compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu, D))
+
+X_full = scipy.linalg.block_diag(X, W) # product characteristics + cost-shifters
+Z_full = scipy.linalg.block_diag(Z, Z_s) # demand-side instruments + supply-side instruments
+delta_full = np.vstack([delta, log_mc]) # mean utilities + log(marginal costs)
+
+theta_1 = np.linalg.inv(X_full.T @ Z_full @ np.linalg.inv(phi) @ Z_full.T @ X_full) @ (
+    X_full.T @ Z_full @ np.linalg.inv(phi) @ Z_full.T @ delta_full) # IV projection
+
+xi = delta_full - X_full @ theta_1 # structural errors
+g_jt = Z_full *  xi # obs x (M + N) matrix, each row is g_jt for a unique j, t observation
+
+phi = (1 / obs) * g_jt.T @ g_jt # sample variance-covariance matrix of g_jt vectors 
+np.savetxt("./output/gmm_phi_estimate.csv", phi, delimiter=",")
+```
+
+The parameters are then re-estimated using $\Phi_{GMM2}$ as the new weight matrix to recover the final estimates $\hat \theta_{GMM2}$.
+
+```{bash, eval = FALSE}
+import numpy as np
+import pandas as pd
+import scipy.linalg
+import scipy.optimize
+
+from contraction_mapping import *
+from compute_mc import *
+from objective import *
+
+gmm_2 = scipy.optimize.minimize(objective, theta_2_start, args = (
+    phi, delta_0, tol, s, X, W, p, Z, Z_s, product_markets, product_firms, nu, D
+    ), method = 'L-BFGS-B', bounds = bounds, options = {
+        'maxiter': 1000, 'maxfun': 1000, 'eps': 1e-3}, tol = 1e-4)
+
+theta_2_final = gmm_2.x
+theta_2_final_df = pd.DataFrame(theta_2_final)
+theta_2_final_df.insert(0, "var", [
+    "alpha_price", "sigma_constant", "sigma_hpwt", "sigma_air", "sigma_mpd", "sigma_size"])
+theta_2_final_df.rename({0:'est'}, axis = 1, inplace = True)
+theta_2_final_df.to_csv("./output/gmm_2_nonlinear_estimates.csv", sep = ",", index = False)
+
+# extract linear parameters
+gamma = np.zeros((K + 1, 1))
+gamma[0] = theta_2_final[0]
+
+sigma = np.zeros((K + 1, K + 1))
+np.fill_diagonal(sigma, np.append([0], theta_2_final[1:(K + 1)]))
+
+delta = contraction_mapping(delta_0, tol, gamma, sigma, s, X, p, product_markets, nu, D)
+log_mc = np.log(compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu, D))
+
+X_full = scipy.linalg.block_diag(X, W) # product characteristics + cost-shifters
+Z_full = scipy.linalg.block_diag(Z, Z_s) # demand-side instruments + supply-side instruments
+delta_full = np.vstack([delta, log_mc]) # mean utilities + log(marginal costs)
+
+theta_1_final = np.linalg.inv(X_full.T @ Z_full @ np.linalg.inv(phi) @ Z_full.T @ X_full) @ (
+    X_full.T @ Z_full @ np.linalg.inv(phi) @ Z_full.T @ delta_full) # IV projection
+theta_1_final_df = pd.DataFrame(theta_1_final)
+theta_1_final_df.insert(0, "var", [
+    "beta_constant", "beta_hpwt", "beta_air", "beta_mpd", "beta_size", "gamma_constant",
+    "gamma_ln_hpwt", "gamma_air", "gamma_ln_mpg", "gamma_ln_size", "gamma_trend"])
+theta_1_final_df.rename({0:'est'}, axis = 1, inplace = True)
+theta_1_final_df.to_csv("./output/gmm_2_linear_estimates.csv", sep = ",", index = False)
+```
+
+### Results
+Point estimates of all linear and non-linear parameters are shown below (compare to Table IV in BLP (1995)). 
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+
+linear_names <- c("beta_constant", "beta_hpwt", "beta_air", "beta_mpd", 
+                        "beta_size", "gamma_constant", "gamma_ln_hpwt", "gamma_air", 
+                        "gamma_ln_mpg", "gamma_ln_size", "gamma_trend")
+linear_vals <- c(-6.43423694, 2.172645834, 1.550561506, -0.060416498, 3.986086152,
+                       1.678645548, 0.541000697, 0.813394769, -0.163091898, -0.109223787, 0.008518413)
+nonlinear_names <- c("alpha_price", "sigma_constant", "sigma_hpwt", "sigma_air", "sigma_mpd", "sigma_size")
+nonlinear_vals <- c(43.77514603, 4.172404588, 4.656933481, 1.346825992, 0.613179089, 1.134277036)
+
+kable(tibble(params = nonlinear_names, est = nonlinear_vals), caption = "Non-linear Parameters",
+      format = "html", table.attr = "style='width:30%;'") %>%
+  kableExtra::kable_styling()
+kable(tibble(params = linear_names, est = linear_vals), caption = "Linear Parameters",
+      format = "html", table.attr = "style='width:30%;'") %>%
+  kableExtra::kable_styling()
+```
