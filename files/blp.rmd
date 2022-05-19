@@ -20,11 +20,11 @@ Let $K$ denote the number of product characteristics that enter the utility equa
 * $\delta_{jt} = x_{jt}^T \beta_0 + \xi_{jt}$ is the mean utility of product $j$ in market $t$
 * $\mu_{ijt} = (p_{jt}, x_{jt}) \cdot (- \Gamma D_{it} + \Sigma \nu_{it})$, with
     + $\Gamma = \begin{pmatrix} \alpha & 0 & \dotsm & 0 \end{pmatrix}^T$ denoting the $(K + 1) \times L$ matrix of non-linear parameters to be interacted with the $L \times 1$ demographic vector $D_{it} = \begin{pmatrix} D_{ilt} \end{pmatrix} = \begin{pmatrix} \frac{1}{y_{it}} \end{pmatrix}$ 
-    + $\Sigma = \begin{pmatrix} 0 \\ & \beta_{\nu}^{(1)} \\ & & \ddots \\ & & & \beta_{\nu}^{(k)} \end{pmatrix}$ denoting the $(K + 1) \times (K + 1)$ matrix of non-linear parameters to be interacted with the $(K + 1) \times 1$ vector of random raste shocks $\begin{pmatrix} \nu_{it}^{(0)} & \dotsm & \nu_{it}^{(k)} \end{pmatrix}^T$.
+    + $\Sigma = \begin{pmatrix} 0 \\ & \beta_{\nu}^{(1)} \\ & & \ddots \\ & & & \beta_{\nu}^{(k)} \end{pmatrix}$ denoting the $(K + 1) \times (K + 1)$ matrix of non-linear parameters to be interacted with the $(K + 1) \times 1$ vector of random raste shocks $\nu_{it} = \begin{pmatrix} \nu_{it}^{(0)} & \dotsm & \nu_{it}^{(k)} \end{pmatrix}^T$.
     
 Model-implied market shares are given by $$\sigma_{jt}(\delta_t, x_t, p_t; \Gamma, \Sigma) = \int \frac{\exp(\delta_{jt} + \mu_{ijt})}{1 + \sum_{k = 1}^{J_t} \exp(\delta_{kt} + \mu_{ikt})} dF_D(D_{it}) dF_\nu(\nu_{it})$$ where $F_D$ and $F_\nu$ are the distribution functions of the demographics and random taste shocks, respectively. 
 
-On the supply side, firms' marginal costs, as specified in BLP (1995), are given by $$\ln(mc_{jt}) = w_{jt}^T \gamma + \omega_{jt}$$ and firm profits are $$\Pi_{ft} = \sum_{j \in \mathcal{J}_{ft}} (p_{jt} - mc_{jt}) M_t \sigma_{jt}(\delta_t, x_t, p_t; \Gamma, \Sigma)$$ where $mc_{jt}$ is the marginal cost of producing product $j$ in market $t$, $w_{jt}$ is a vector of $K_s$ observed cost-shifters, $\omega_{jt}$ is an unobserved latent supply shock, $\Pi_{ft}$ is the profit of firm $f$ operating in market $t$, $M_t$ is the size of market $t$, and $\mathcal{J}_f$ is the set of all products produced by firm $f$ in the same market. 
+On the supply side, firms' marginal costs, as specified in BLP (1995), are given by $$\ln(mc_{jt}) = w_{jt}^T \gamma + \omega_{jt}$$ and firm profits are $$\Pi_{f_t} = \sum_{j \in \mathcal{J}_{ft}} (p_{jt} - mc_{jt}) M_t \sigma_{jt}(\delta_t, x_t, p_t; \Gamma, \Sigma)$$ where $mc_{jt}$ is the marginal cost of producing product $j$ in market $t$, $w_{jt}$ is a vector of $K_s$ observed cost-shifters, $\omega_{jt}$ is an unobserved latent supply shock, $\Pi_{ft}$ is the profit of firm $f$ operating in market $t$, $M_t$ is the size of market $t$, and $\mathcal{J}_f$ is the set of all products produced by firm $f$ in the same market. 
 
 Assuming firms are competing in prices in a static Bertrand-Nash setting and taking the derivative of the profit function with respect to price yields the first-order condition $$p = mc + \Omega^{-1} \sigma(p, \cdot)$$ where $p$, $mc$, and $\sigma(p, \cdot)$ are vectors of prices, marginal costs, and market shares (quantities) of all products in all markets and $\Omega$ is a matrix whose [$j$, $k$]'th entry is $-\frac{d\sigma_{jt}}{dp_{kt}}$ if products $j$, $k$ are produced by the same firm in the same market and $0$ otherwise.
     
@@ -222,7 +222,7 @@ def draw_population(R, T, K, nu_mean, nu_var, D_mean = None, D_var = None):
 #   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
 #      in markets t = 1, ..., T
 
-    # draw hetereogeneous taste shocks from parametric distribution
+    # draw taste shocks from parametric distribution
     # in BLP, nu_alpha = 0 
     nu_alpha = np.zeros((1, R, T))
     nu_beta = np.random.normal(nu_mean, pow(nu_var, 0.5), (K, R, T))
