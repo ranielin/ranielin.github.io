@@ -357,23 +357,27 @@ write_csv(Z_s, &quot;./data/estimation/Z_s.csv&quot;)</code></pre>
 <pre class="bash"><code>import numpy as np
 
 def draw_population(R, T, K, nu_mean, nu_var, D_mean = None, D_var = None):
-# generate random draws of consumer taste shocks nu_it ~ Normal(nu_mean, nu_var) and
-# consumer demographics D_it ~ Normal(D_mean_t, D_var_t) in each market separately
-# inputs:
-#   R, number of random draws per market
-#   T, number of distinct markets
-#   K, number of observed product characteristics
-#   nu_mean, mean of distribution of agents' heterogeneous tastes
-#   nu_var, variance of distribution of agents' heterogeneous tastes
-#   D_mean, L x T array of means of demographic variables l = 1, ..., L 
-#           in markets t = 1, ..., T
-#   D_var, L x T array of variance of demographic variables l = 1, ..., L 
-#          in markets t = 1, ..., T
-# outputs:
-#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
-#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
-#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
-#      in markets t = 1, ..., T
+    &quot;&quot;&quot;
+    generate random draws of consumer taste shocks nu_it ~ Normal(nu_mean, nu_var) and
+    consumer demographics D_it ~ Normal(D_mean_t, D_var_t) in each market separately
+
+    inputs:
+        R, number of random draws per market
+        T, number of distinct markets
+        K, number of observed product characteristics
+        nu_mean, mean of distribution of agents' heterogeneous tastes
+        nu_var, variance of distribution of agents' heterogeneous tastes
+        D_mean, L x T array of means of demographic variables l = 1, ..., L 
+                in markets t = 1, ..., T
+        D_var, L x T array of variance of demographic variables l = 1, ..., L 
+                in markets t = 1, ..., T
+
+    outputs:
+        nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+                prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+        D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+            in markets t = 1, ..., T
+    &quot;&quot;&quot;
 
     # draw taste shocks from parametric distribution
     # in BLP, nu_alpha = 0 
@@ -400,24 +404,28 @@ def draw_population(R, T, K, nu_mean, nu_var, D_mean = None, D_var = None):
 <pre class="bash"><code>import numpy as np
 
 def compute_shares(delta, gamma, sigma, X, p, product_markets, nu, D):
-# computes model-implied market shares given mean utilities and non-linear 
-# parameters using simulated draws of individuals
-# inputs:
-#   delta, vector of mean utilities of each product-market combination
-#   gamma, (K + 1) x L matrix of random coefficients of demographics
-#   sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
-#          unobserved heterogeneity 
-#   X, matrix of observed characteristics of each product in each market
-#   p, vector of prices of each product in each market
-#   product_markets, encodes the market corresponding to each product
-#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
-#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
-#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
-#      in markets t = 1, ..., T
-# output:
-#   s_model, vector of model-implied shares of each product in each market
-#   f_model, matrix of model-implied individual choice probabilities of each product
-#            in each market conditional on values of nu_i and D_i
+    &quot;&quot;&quot;
+    computes model-implied market shares given mean utilities and non-linear 
+    parameters using simulated draws of individuals
+
+    inputs:
+        delta, vector of mean utilities of each product-market combination
+        gamma, (K + 1) x L matrix of random coefficients of demographics
+        sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
+                unobserved heterogeneity 
+        X, matrix of observed characteristics of each product in each market
+        p, vector of prices of each product in each market
+        product_markets, encodes the market corresponding to each product
+        nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+                prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+        D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+                in markets t = 1, ..., T
+                
+    output:
+        s_model, vector of model-implied shares of each product in each market
+        f_model, matrix of model-implied individual choice probabilities of each product
+                    in each market conditional on values of nu_i and D_i
+    &quot;&quot;&quot;
 
     K = X.shape[1] # number of product characteristics
     R = nu.shape[1] # number of simulated individuals
@@ -458,26 +466,30 @@ def compute_shares(delta, gamma, sigma, X, p, product_markets, nu, D):
 <pre class="bash"><code>import numpy as np
 
 def contraction_mapping(delta_0, tol, gamma, sigma, s, X, p, product_markets, nu, D):
-# solves for the vector of mean utilities that equates model-predicted shares
-# with observed shares for given values of non-linear utility parameters
-# using the BLP contraction mapping function
-# inputs:
-#   delta_0, vector of initial guesses of product market mean utilities
-#   tol, tolerance level at which to stop the recursive iteration
-#   gamma, (K + 1) x L matrix of random coefficients of demographics
-#   sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
-#          unobserved heterogeneity 
-#   s, vector of observed market shares of each product in each market
-#   X, matrix of observed product demand characteristics in each market
-#   p, vector of prices of each product in each market
-#   product_markets, encodes the market corresponding to each product
-#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
-#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
-#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
-#      in markets t = 1, ..., Tt
-# output:
-#   delta, vector of mean utilities equating predicted shares with observed
-#          shares
+    &quot;&quot;&quot;
+    solves for the vector of mean utilities that equates model-predicted shares
+    with observed shares for given values of non-linear utility parameters
+    using the BLP contraction mapping function
+
+    inputs:
+        delta_0, vector of initial guesses of product market mean utilities
+        tol, tolerance level at which to stop the recursive iteration
+        gamma, (K + 1) x L matrix of random coefficients of demographics
+        sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
+                unobserved heterogeneity 
+        s, vector of observed market shares of each product in each market
+        X, matrix of observed product demand characteristics in each market
+        p, vector of prices of each product in each market
+        product_markets, encodes the market corresponding to each product
+        nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+                prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+                D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+                in markets t = 1, ..., T
+                
+    output:
+        delta, vector of mean utilities equating predicted shares with observed
+                shares
+    &quot;&quot;&quot;
 
     error = 1.0
     delta_old = delta = delta_0
@@ -500,25 +512,29 @@ def contraction_mapping(delta_0, tol, gamma, sigma, s, X, p, product_markets, nu
 <pre class="bash"><code>import numpy as np
 
 def compute_omega(delta, gamma, sigma, X, p, product_markets, product_firms, nu, D):
-# computes derivatives of shares with respect to prices given mean utilities 
-# and non-linear parameters using simulated draws of individuals
-# inputs:
-#   delta, vector of mean utilities of each product-market combination
-#   gamma, (K + 1) x L matrix of random coefficients of demographics
-#   sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
-#          unobserved heterogeneity 
-#   X, matrix of observed characteristics of each product in each market
-#   p, vector of prices of each product in each market
-#   product_markets, encodes the market corresponding to each product
-#   product_firms, encodes the firm corresponding to each product
-#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
-#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
-#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
-#      in markets t = 1, ..., T
-# output:
-#   omega, matrix where entry [j, k] is the (negative) derivative of share j with 
-#   respect to price k if the two products are produced by the same firm in the same 
-#   market, and zero otherwise
+    &quot;&quot;&quot;
+    computes derivatives of shares with respect to prices given mean utilities 
+    and non-linear parameters using simulated draws of individuals
+
+    inputs:
+        delta, vector of mean utilities of each product-market combination
+        gamma, (K + 1) x L matrix of random coefficients of demographics
+        sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
+                unobserved heterogeneity 
+        X, matrix of observed characteristics of each product in each market
+        p, vector of prices of each product in each market
+        product_markets, encodes the market corresponding to each product
+        product_firms, encodes the firm corresponding to each product 
+        nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+            prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+        D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+            in markets t = 1, ..., T
+            
+    output:
+        omega, matrix where entry [j, k] is the (negative) derivative of share j with
+                respect to price k if the two products are produced by the same firm in the same 
+                market, and zero otherwise
+    &quot;&quot;&quot;
 
     omega = np.zeros((X.shape[0], X.shape[0]))
     f_model = compute_shares(delta, gamma, sigma, X, p, product_markets, nu, D)[1]
@@ -552,24 +568,28 @@ def compute_omega(delta, gamma, sigma, X, p, product_markets, product_firms, nu,
 <pre class="bash"><code>import numpy as np
 
 def compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu, D):
-# solve for marginal costs for given values of non-linear parameters and mean utilities,
-# assuming firms are setting prices in a Bertrand-Nash equilibrium
-# inputs:
-#   delta, vector of mean utilities of each product-market combination
-#   gamma, (K + 1) x L matrix of random coefficients of demographics
-#   sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
-#          unobserved heterogeneity 
-#   s, vector of observed market shares of each product in each market
-#   X, matrix of observed product demand characteristics in each market
-#   p, vector of prices of each product in each market
-#   product_markets, encodes the market corresponding to each product
-#   product_firms, encodes the firm corresponding to each product
-#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
-#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
-#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
-#      in markets t = 1, ..., T
-# output:
-#   mc, vector of marginal costs of each product in each market
+    &quot;&quot;&quot;
+    solve for marginal costs for given values of non-linear parameters and mean utilities,
+    assuming firms are setting prices in a Bertrand-Nash equilibrium
+
+    inputs:
+        delta, vector of mean utilities of each product-market combination
+        gamma, (K + 1) x L matrix of random coefficients of demographics
+        sigma, (K + 1) x (K + 1) diagonal matrix of random coefficients of 
+            unobserved heterogeneity 
+        s, vector of observed market shares of each product in each market
+        X, matrix of observed product demand characteristics in each market
+        p, vector of prices of each product in each market
+        product_markets, encodes the market corresponding to each product
+        product_firms, encodes the firm corresponding to each product
+        nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+            prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+        D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+        in markets t = 1, ..., T
+        
+    output:
+        mc, vector of marginal costs of each product in each market
+    &quot;&quot;&quot;
 
     omega = compute_omega(delta, gamma, sigma, X, p, product_markets, product_firms, nu, D)
     mc = p - np.matmul(np.linalg.inv(omega), s) # first-order Bertrand equilibrium condition
@@ -591,28 +611,35 @@ def compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu,
 <pre class="bash"><code>import numpy as np
 import scipy.linalg
 
+from contraction_mapping import *
+from compute_mc import *
+
 def objective(theta_2, phi, delta_0, tol, s, X, W, p, Z, Z_s, product_markets, product_firms, nu, D):
-# compute GMM objective function
-# inputs:
-#   theta_2, length L + 1 vector [alpha, sigma_1, ..., sigma_L] 
-#            of non-linear parameters
-#   phi, GMM weight matrix
-#   delta_0, vector of initial guesses of product market mean utilities
-#   tol, tolerance level at which to stop the contraction mapping iteration
-#   s, vector of observed market shares of each product in each market
-#   X, matrix of observed product demand characteristics in each market
-#   W, matrix of observed supply-side cost shifters in each market
-#   p, vector of prices of each product in each market
-#   Z, matrix of demand-side instruments
-#   Z_s, matrix of supply-side instruments
-#   product_markets, encodes the market corresponding to each product
-#   product_firms, encodes the firm corresponding to each product
-#   nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
-#       prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
-#   D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
-#      in markets t = 1, ..., Tt
-# output:
-#   val, value of GMM objective function at the given parameters
+    &quot;&quot;&quot;
+    compute GMM objective function
+
+    inputs:
+        theta_2, length L + 1 vector [alpha, sigma_1, ..., sigma_L] 
+                    of non-linear parameters
+        phi, GMM weight matrix
+        delta_0, vector of initial guesses of product market mean utilities
+        tol, tolerance level at which to stop the contraction mapping iteration
+        s, vector of observed market shares of each product in each market
+        X, matrix of observed product demand characteristics in each market
+        W, matrix of observed supply-side cost shifters in each market
+        p, vector of prices of each product in each market
+        Z, matrix of demand-side instruments
+        Z_s, matrix of supply-side instruments
+        product_markets, encodes the market corresponding to each product
+        product_firms, encodes the firm corresponding to each product
+        nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
+                prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+        D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+            in markets t = 1, ..., Tt
+
+    output:
+        val, value of GMM objective function at the given parameters
+    &quot;&quot;&quot;
 
     obs = X.shape[0] # number of total observations
     K = X.shape[1] # number of product characteristics
@@ -653,8 +680,13 @@ def objective(theta_2, phi, delta_0, tol, s, X, W, p, Z, Z_s, product_markets, p
 <p>With all of the required functions now defined, model parameters can now be estimated. Prior to estimation, all the relevant data is loaded in and random draws are taken using the <code>draw_population</code> function.</p>
 <pre class="bash"><code>import numpy as np
 import pandas as pd
+import scipy.linalg
+import scipy.optimize
 
 from draw_population import *
+from contraction_mapping import *
+from compute_mc import *
+from objective import *
 
 np.random.seed(123)
 
@@ -690,16 +722,7 @@ D = 1/np.exp(log_y) # 1 / exp(log(income)) = 1/y_i</code></pre>
 <p>The objective function <code>objective</code> is minimized using the L-BFGS-B gradient-based search routine with the original parameter estimates published in BLP (1995) used as the starting search values. All elements of <span class="math inline">\(\theta_2\)</span> are constrained to be non-negative.</p>
 <p>For the GMM estimator to be efficient, the weight matrix <span class="math inline">\(\Phi\)</span> should be proportional to <span class="math inline">\(E[g(\theta_0)g(\theta_0)^T]\)</span> with <span class="math inline">\(g(\theta_0) = \begin{pmatrix} z_{1}\xi(\theta_0) &amp; \dotsm &amp; z_{15} \xi_{jt}(\theta_0) &amp; z_{s_{1}} \omega(\theta_0) &amp; \dotsm &amp; z_{s_{18}} \omega(\theta_0) \end{pmatrix}^T\)</span> and <span class="math inline">\(\theta_0\)</span> denoting the true parameter values. Since <span class="math inline">\(\theta_0\)</span> is unknown, two-step feasible GMM estimation is implemented, which produces an asymptotically efficient estimate of <span class="math inline">\(\theta\)</span> by using a consistent estimate of <span class="math inline">\(E[g(\theta_0)g(\theta_0)^T]\)</span> as the weight matrix.</p>
 <p>In the first step, the identity matrix is used as the weight matrix, <span class="math inline">\(\Phi_{GMM1} = I\)</span>, and first stage estimates <span class="math inline">\(\hat \theta_{GMM1}\)</span> of <span class="math inline">\(\theta\)</span> are obtained.</p>
-<pre class="bash"><code>import numpy as np
-import pandas as pd
-import scipy.linalg
-import scipy.optimize
-
-from contraction_mapping import *
-from compute_mc import *
-from objective import *
-
-delta_0 = np.array(pd.read_csv(&quot;./data/estimation/s_s0.csv&quot;))
+<pre class="bash"><code>delta_0 = np.array(pd.read_csv(&quot;./data/estimation/s_s0.csv&quot;))
 theta_2_start = np.array(pd.read_csv(&quot;./data/raw/theta_2_start.csv&quot;))[:, 1]
 tol = 1e-12
 bounds = ((0, np.inf),) * theta_2_start.shape[0]
@@ -717,13 +740,7 @@ theta_2_initial_df.insert(0, &quot;var&quot;, [
 theta_2_initial_df.rename({0:'est'}, axis = 1, inplace = True)
 theta_2_initial_df.to_csv(&quot;./output/gmm_1_nonlinear_estimates.csv&quot;, sep = &quot;,&quot;, index = False)</code></pre>
 <p>In the second step, <span class="math inline">\(E[g(\theta)g(\theta)^T]\)</span> is estimated using the parameter estimates from the first step. More precisely, the weight matrix is set as <span class="math display">\[\Phi_{GMM2} = \frac{1}{N} \sum_{j, t} g_{jt}(\hat \theta_{GMM1}) g_{jt}(\hat \theta_{GMM1})^T.\]</span></p>
-<pre class="bash"><code>import numpy as np
-import scipy.linalg
-
-from contraction_mapping import *
-from compute_mc import *
-
-gamma = np.zeros((K + 1, 1))
+<pre class="bash"><code>gamma = np.zeros((K + 1, 1))
 gamma[0] = theta_2_initial[0]
 
 sigma = np.zeros((K + 1, K + 1))
@@ -745,16 +762,7 @@ g_jt = Z_full *  xi # obs x (M + M_s) matrix, each row is g_jt for a unique j, t
 phi = (1 / obs) * g_jt.T @ g_jt # sample variance-covariance matrix of g_jt vectors 
 np.savetxt(&quot;./output/gmm_phi_estimate.csv&quot;, phi, delimiter=&quot;,&quot;)</code></pre>
 <p>The parameters are then re-estimated using <span class="math inline">\(\Phi_{GMM2}\)</span> as the new weight matrix to recover the final estimates <span class="math inline">\(\hat \theta_{GMM2}\)</span>.</p>
-<pre class="bash"><code>import numpy as np
-import pandas as pd
-import scipy.linalg
-import scipy.optimize
-
-from contraction_mapping import *
-from compute_mc import *
-from objective import *
-
-gmm_2 = scipy.optimize.minimize(objective, theta_2_start, args = (
+<pre class="bash"><code>gmm_2 = scipy.optimize.minimize(objective, theta_2_start, args = (
     phi, delta_0, tol, s, X, W, p, Z, Z_s, product_markets, product_firms, nu, D
     ), method = 'L-BFGS-B', bounds = bounds, options = {
         'maxiter': 1000, 'maxfun': 1000, 'eps': 1e-3}, tol = 1e-4)
