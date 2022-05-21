@@ -594,7 +594,7 @@ D = 1/np.exp(log_y) # 1 / exp(log(income)) = 1/y_i
 
 The objective function ``objective`` is minimized using the L-BFGS-B gradient-based search routine with the original parameter estimates published in BLP (1995) used as the starting search values. All elements of $\theta_2$ are constrained to be non-negative.
 
-For the GMM estimator to be efficient, the weight matrix $\Phi$ should be proportional to $E[g(\theta_0)g(\theta_0)^T]$ with $g(\theta_0) = \begin{pmatrix} z_{1}\xi(\theta_0) & \dotsm & z_{15} \xi_{jt}(\theta_0) & z_{s_{1}} \omega(\theta_0) & \dotsm & z_{s_{18}} \omega(\theta_0) \end{pmatrix}^T$ and $\theta_0$ denoting the true parameter values. Since $\theta_0$ is unknown, two-step feasible GMM estimation is implemented, which produces an asymptotically efficient estimate of $\theta$ by using a consistent estimate of $E[g(\theta_0)g(\theta_0)^T]$ as the weight matrix.
+For the GMM estimator to be efficient, the weight matrix $\Phi$ should be proportional to $E[g(\theta_0)g(\theta_0)^T]$ with $g(\theta_0) = \begin{pmatrix} z_{1}\xi(\theta_0) & \dotsm & z_{15} \xi(\theta_0) & z_{s_1} \omega(\theta_0) & \dotsm & z_{s_{18}} \omega(\theta_0) \end{pmatrix}^T$ and $\theta_0$ denoting the true parameter values. Since $\theta_0$ is unknown, two-step feasible GMM estimation is implemented, which produces an asymptotically efficient estimate of $\theta$ by using a consistent estimate of $E[g(\theta_0)g(\theta_0)^T]$ as the weight matrix.
 
 In the first step, the identity matrix is used as the weight matrix, $\Phi_{GMM1} = I$, and first stage estimates $\hat \theta_{GMM1}$ of $\theta$ are obtained.
 
