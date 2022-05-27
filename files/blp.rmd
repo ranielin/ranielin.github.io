@@ -36,7 +36,7 @@ The parameters $\Gamma$ and $\Sigma$ are referred to as non-linear parameters, w
 
 For this replication, market-level automobile data is obtained from the [hdm](https://cran.r-project.org/web/packages/hdm/index.html) (high-dimensional metrics) package for R. Following the BLP (1995) specifications, there are $K = 5$ demand-side product characteristics (a constant term, horse power per weight, air conditioning, miles per dollar, and size) and $K_s = 6$ supply-side cost shifters (a constant, ln(horse power per weight), air, ln(miles per gallon), ln(size), and a trend term). The data also contain observed prices, market shares, and the logit term $\ln(\frac{\hat s}{\hat s_0})$, which is the logarithm of the ratio of observed shares to ouside shares.
 
-Letting $N = \sum_t J_t$ denote the total number of observations, the data consists of $X$, an $N \times K$ matrix of product characteristics; $W$, an $N \times K_s$ matrix of cost-shifters; $p$, an $N \times 1$ vector of prices; $\hat s$, an $N \times 1$ vector of market shares; and separate vectors that encode the market and firm corresponding to each of the $N$ observations.
+The data consists of $X$, an $N \times K$ matrix of product characteristics that shift demand; $W$, an $N \times K_s$ matrix of product characteristics that shift supply; $p$, an $N \times 1$ vector of prices; $\hat s$, an $N \times 1$ vector of market shares; and separate vectors that encode the market and firm corresponding to each of the $N$ observations.
 
 A few minor modifications are made to the data. The listed price in the dataset has been demeaned, so the price is shifted upwards to reflect the prices in the original data. The trend term is also slightly modified to match the original data.
 
