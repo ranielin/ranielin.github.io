@@ -483,9 +483,9 @@ def contraction_mapping(delta_0, tol, gamma, sigma, s, X, p, product_markets, nu
         p, vector of prices of each product in each market
         product_markets, encodes the market corresponding to each product
         nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
-                prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
-                D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
-                in markets t = 1, ..., T
+            prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
+        D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
+            in markets t = 1, ..., T
                 
     output:
         delta, vector of mean utilities equating predicted shares with observed
@@ -586,7 +586,7 @@ def compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu,
         nu, (K + 1) x R x T array of draws r = 1, ..., R of agents' heterogeneous tastes for 
             prices and product characteristics k = 0, ..., K in markets t = 1, ..., T
         D, L x R x T array of demographics l = 1, ..., L of agent draws r = 1, ..., R 
-        in markets t = 1, ..., T
+            in markets t = 1, ..., T
         
     output:
         mc, vector of marginal costs of each product in each market
@@ -604,7 +604,7 @@ def compute_mc(delta, gamma, sigma, s, X, p, product_markets, product_firms, nu,
 <ol style="list-style-type: decimal">
 <li>Obtain the mean utilities <span class="math inline">\(\delta_{jt}\)</span> that equate model-implied market shares with observed shares using <code>contraction_mapping</code> and marginal costs <span class="math inline">\(mc_{jt}\)</span> implied by the demand-side estimates using <code>compute_mc</code>.</li>
 <li>Denote <span class="math inline">\(X_{full} = \begin{pmatrix} X &amp; 0 \\ 0 &amp; W \end{pmatrix}\)</span>, <span class="math inline">\(Z_{full} = \begin{pmatrix} Z &amp; 0 \\ 0 &amp; Z_s \end{pmatrix}\)</span>, <span class="math inline">\(\delta_{full} = \begin{pmatrix} \delta \\\ln(mc) \end{pmatrix}\)</span>, and <span class="math inline">\(\xi_{full} = \begin{pmatrix} \xi \\ \omega \end{pmatrix}\)</span>. Recover the linear parameters <span class="math display">\[\theta_1 = \begin{pmatrix} \beta_0 \\ \gamma\end{pmatrix} = (X_{full}^T Z_{full} \Phi^{-1} Z_{full}^T X_{full})^{-1}X_{full} Z_{full} \Phi^{-1} Z_{full}^T \delta_{full}.\]</span> This is simply the 2SLS IV projection for the regression equation <span class="math inline">\(\delta_{full} = X_{full} \theta_1 + \xi_{full}\)</span> with instrument matrix <span class="math inline">\(Z_{full}\)</span> and projection matrix <span class="math inline">\(Z_{full} \Phi^{-1} Z_{full}^T\)</span>.</li>
-<li>Compute the vector of structural errors <span class="math inline">\(\xi_{full} = \delta_{full} - X_1 \theta_1\)</span>.</li>
+<li>Compute the vector of structural errors <span class="math inline">\(\xi_{full} = \delta_{full} - X_{full} \theta_1\)</span>.</li>
 <li>Return the value of the GMM objective function <span class="math inline">\((\frac{1}{N} \xi_{full}^T Z_{full}) \Phi^{-1} (\frac{1}{N} Z_{full}^T \xi_{full})\)</span>.</li>
 </ol>
 <p>Note that in BLP (1995), observations are instead grouped by distinct automobile models and the GMM vectors <span class="math inline">\(g_{model}(\theta)\)</span> are constructed for each model rather than for each distinct product-market combination. It is straightforward to adapt this code in a similar way, if desired.</p>
