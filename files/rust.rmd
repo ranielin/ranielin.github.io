@@ -1,0 +1,393 @@
+---
+title: "Rust (1987) Replication"
+author: 'Ranie Lin '
+date: "June 2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+This is a walkthrough of a replication of the point estimates corresponding to the simple linear cost function specification (first four rows of the "Groups 1, 2, 3, 4" column of Table IX) in Rust (1987). A repository with all of the code can be found [here](https://github.com/ranielin/Rust-1987-Replication). The estimation procedure is the the nested fixed point algorithm, a full-solution method that requires solving the DP problem for each set of parameter values that is searched over.
+
+### Model of Optimal Bus Engine Replacement
+
+In each discrete time period $t$, an individual agent receives utility $$u(x_t, i_t, \epsilon_t; \theta_1) = \begin{cases} c(x_t; \theta_{11}) + \epsilon_{t} &\text{if} \quad i_t = 0 \\ c(0; \theta_{11}) - RC + \epsilon_t &\text{if} \quad i_t = 1\end{cases}$$ where $x_t$ is a discrete state variable representing bus mileage, $i_t$ is a binary decision variable that equals $1$ if replacement occurs at time $t$ and $0$ otherwise, $\theta_1$ is a vector of model parameters that includes the cost parameter $\theta_{11}$ and replacement cost $RC$, and $\epsilon_t$ is an independently distributed T1EV structural error term representing unobserved state variables.
+
+In this replication, the cost function considered is the simple linear function $c(x_t; \theta_{11}) = 0.001 \theta_{11} x_t$. The state variables $x_t$ are assumed to follow a probability distribution given by $$p(x_{t+1} | x_t, i_t; \theta_3) = \begin{cases} g(x_{t+1} - x_t; \theta_3) &\text{if} \quad i_t = 0 \\ g(x_{t+1} - 0; \theta_3) &\text{if} \quad i_t = 1 \end{cases}.$$ The functional form of $g(\cdot)$ is specified as a multinomial distribution over $\{0, 1, 2\}$ so that the transition density parameters $\theta_3$ are characterized by two parameters $\theta_{30}$ and $\theta_{31}$, where $\theta_{3j}$ represents the probability that $x_t$ increases in increments of $j$ given $i_t = 0$ for $j = 0, 1$, respectively.
+
+An agent chooses a sequence of decisions $\{i_t\}$ to maximize their expected discounted payoff stream $\mathbb{E}[\sum_t \beta^{t-1}u(x_t, i_t, \epsilon_t; \theta_1)]$, where $\beta \in (0, 1)$ is the discount factor. The Bellman equation for this single-agent DP problem is $$V(x_t, \epsilon_t; \theta) = \max_{i = 0, 1}\{u(x_t, i_t, \epsilon_t; \theta_1) + \beta \mathbb{E}_{x_{t+1}, \epsilon_{t+1} | x_t, i_t}[V(x_{t+1}, \epsilon_{t+1}; \theta)]\}$$ where $V(\cdot)$ is the value function and $\mathbb{E}_{x_{t+1}, \epsilon_{t+1} | x_t, i_t}[V(x_{t+1}, \epsilon_{t+1}; \theta)] = \int V(x_{t+1}, \epsilon_{t+1}; \theta) p(dx_{t+1}, d\epsilon_{t+1} | x_t, i_t, \epsilon_t; \theta_2, \theta_3)$ is the expected value function, denoted $EV(x_t, i_t)$. Note that the conditional independence assumption in Rust (1987) allows the joint density of $\{x_t, \epsilon_t\}$ to be factored as $p(x_{t+1}, \epsilon_{t+1} | x_t, i_t, \epsilon_t; \theta_2, \theta_3) = p(\epsilon_{t+1} | x_{t+1}; \theta_2) p(x_{t+1} | x_t, i_t; \theta_3)$ so that the EV function does not depend on $\epsilon$.
+
+Each bus's replacement schedule is treated as a single-agent DP problem, and distinct buses in the data are treated as independent of each other.
+
+### Data Setup
+
+Data on bus engine replacement schedules and mileage used is obtained from the ["companion web page"](http://individual.utoronto.ca/vaguirre/wpapers/program_code_survey_joe_2008.html) to Aguirregabiria and Mira (2010). Data from bus groups 1 through 4 are combined, which correspond to data files "g870.asc", "rt50.asc", "t8h203.asc", and "a530875.asc", respectively.
+
+The data setup process consists of the following steps:
+
+1. Reshape data files so that columns correspond to buses and rows correspond to observations at successive time periods.
+2. Adjust the mileage variable to represent the total mileage accumulated since the last engine replacement.
+3. Discretize the mileage variable so that $x_t = \text{floor}(mi. / 5000)$, where $mi.$ is the accumulated mileage since the last engine replacement.
+4. Define the decision variable $i_t$ to take the value $1$ if $x_{t+1}$ is above the mileage at replacement but $x_t$ is not and $0$ otherwise.
+ 
+```{bash, eval = FALSE}
+# organize and clean bus engine data obtained from
+# Aguirregabiria and Mira's "Companion Web Page to
+# Dynamic discrete choice structural models: A survey"
+
+library(tidyverse)
+
+# load data corresponding to bus groups 1 through 4 in Rust (1987)
+df1 <- matrix(unlist(read.table("./data/raw/g870.asc")), nrow = 36, byrow = FALSE)
+df2 <- matrix(unlist(read.table("./data/raw/rt50.asc")), nrow = 60, byrow = FALSE)
+df3 <- matrix(unlist(read.table("./data/raw/t8h203.asc")), nrow = 81, byrow = FALSE)
+df4 <- matrix(unlist(read.table("./data/raw/a530875.asc")), nrow = 128, byrow = FALSE)
+
+clean_dat <- function(df){
+  
+  # odometer values at replacement
+  od_rep_1 <- df[6, ]
+  od_rep_2 <- df[9, ]
+  
+  # total mileage
+  df <- df[12:nrow(df), ]
+  
+  # indicators for when mileage is above the odometer values at replacement
+  rep_1 <- t(apply(df, 1, function(x) x >= od_rep_1) * as.vector(od_rep_1 > 0))
+  rep_2 <- t(apply(df, 1, function(x) x >= od_rep_2) * as.vector(od_rep_2 > 0))
+  
+  # state variable: mileage since replacement, discretized increments of 5000 mi.
+  x <- df - t(t(rep_1) * t(rep_2 == 0) * od_rep_1) -
+    t(t(rep_2) * t(rep_1 == 0) * od_rep_2)
+  x <- floor(x / 5000)
+    
+  # decision variable: engine replacement, i.e., mileage is above rep_1 or rep_2
+  # in the next period but not the current period
+  i <- ifelse((rbind(rep_1[2:nrow(rep_1), ] - rep_1[1:nrow(rep_1) - 1, ], 0) > 0) |  
+                (rbind(rep_2[2:nrow(rep_2), ] - rep_2[1:nrow(rep_2) - 1, ], 0) > 0), 1, 0)
+  
+  # delta: mileage increment from prior period, accounting for engine replacement
+  delta <- rbind(0, x[2:nrow(x), ] - x[1:nrow(x) - 1, ] + x[1:nrow(x) - 1, ] * i[1:nrow(x) - 1, ]) 
+  
+  # return data frame with columns x (state), i (decision), and delta (increment)
+  return(tibble(x = matrix(x, ncol = 1), i = matrix(i, ncol = 1), delta = matrix(delta, ncol = 1)))
+}
+
+df1 <- clean_dat(df1)
+df2 <- clean_dat(df2)
+df3 <- clean_dat(df3)
+df4 <- clean_dat(df4)
+
+bus_dat <- rbind(df1, df2, df3, df4)
+write_csv(bus_dat, "./data/estimation/bus_dat.csv")
+```
+
+### Transition Density Matrix
+
+The parameters $\theta_{30}$ and $\theta_{31}$ that characterize the transition density $p(x_{t+1} | x_t, i_t; \theta_3)$ are empirically estimated from the data as $\hat \theta_{3j} = \text{freq}(x_{t+1} - x_t = j | i_t = 0, x_{t+1} - 0 = j | i_t = 1)$ for $j = 0, 1$. It is assumed that $1 - \theta_{30} - \theta_{31}$ gives the probability of $x_{t+1} - x_t = 2$ conditional on $i_t = 0$. Because the transition density is of the form $$p(x_{t+1} | x_t, i_t; \theta_3) = \begin{cases} g(x_{t+1} - x_t; \theta_3) &\text{if} \quad i_t = 0 \\ g(x_{t+1} - 0; \theta_3) &\text{if} \quad i_t = 1 \end{cases},$$ there is no need to estimate separate parameters for the decision $i = 1$, which can be thought of as simply resetting the state variable to $0$.
+
+Let $S = 90$ denote the size of the state space. The transition matrix $P$ is constructed as a $S \times S$ matrix whose $[j, k]'th$ entries encode the probability of transitioning from state $j$ to state $k$, conditional on $i = 0$. The entires of $P$ are given by $$P_{jk} = \begin{cases} \hat \theta_{30} &\text{if} \quad j = k \\ \hat \theta_{31} &\text{if} \quad j+1 = k \\ 1 - \hat \theta_{30} - \hat \theta_{31} &\text{if} \quad j+2 = k \\ 0 &\text{otherwise} \end{cases}.$$ There is also an adjustment made to the last two rows of $P$ so that the probabilities in those rows sum to $1$.
+
+The function ``transition`` returns the transition matrix $P$ given the state space size $S$ and a vector $\delta$ of mileage incremenets observed in the data.
+
+```{bash, eval = FALSE}
+import numpy as np
+
+def transition(S, delta):
+    """
+    construct transition matrix for the Rust model with empirical probabilities
+    of the three possible state transitions (delta = 0, 1, or 2)
+
+    inputs:
+        S, number of possible states
+        delta, vector of mileage increments
+        
+    output:
+        P, S x S matrix with entries [i, j] containing the probability of 
+            transitioning to state j from state i
+    """
+
+    # empirical probabilities of three state transitions
+    theta_3_0 = sum(delta == 0) / delta.size
+    theta_3_1 = sum(delta == 1) / delta.size
+    theta_3_2 = 1 - theta_3_0 - theta_3_1
+
+    P = np.zeros((S, S))
+
+    # fill off-diagonals of transition matrix
+    P[np.arange(0, S), np.arange(0, S)] = theta_3_0
+    P[np.arange(0, S-1), np.arange(1, S)] = theta_3_1
+    P[np.arange(0, S-2), np.arange(2, S)] = theta_3_2
+
+    # adjust absorbing states to sum to 1
+    P[S-1, S-1] = 1
+    P[S-2, S-1] = 1 - theta_3_0
+
+    return P
+```
+### Expected Value Contraction Mapping
+
+The expected value function can be written as $$EV(x, i) = \sum_{y = 0}^{S-1} [\ln(\sum_{j = 0, 1} \exp(\bar u(y, j; \theta_1) + \beta EV(y, j)))] p(y | x, i)$$ where $\bar u(\cdot)$ denotes the current-period utility function minus the error term. This equation can be derived directly from the definition of the EV function $\mathbb{E}_{x_{t+1}, \epsilon_{t+1} | x_t, i_t}[\max_{j_{t+1} = 0, 1} \{ \bar u(x_{t+1}, j_{t+1}; \theta) + \epsilon_{t+1} + \beta EV(x_{t+1}, j_{t+1}) \}]$ and applying the closed-form expression for the maximum of extreme-valued random variables.
+
+By the set-up of the optimal replacement problem, $EV(x, j = 1) = EV(0, j = 0)$ for any $x = 0, \dots, S - 1$. Therefore, it suffices to represent the EV function as a length $S$ vector corresponding to $EV(x, 0)$ for each $x = 0, \dots, S - 1$. In vector/matrix form, the EV function can be re-written as $$EV = P [\ln(\sum_{j = 0, 1} \exp(\bar u(\cdot, j; \theta_1) + \beta EV))]$$ where $P$ is the $S \times S$ transition matrix and $\bar u(\cdot, j; \theta_1)$ is a length $S$ vector denoting the current-period utility (less the error term) of making choice $j$ in each of the $S$ states.
+
+The right-hand side of the above equation, referred to as the Bellman operator, is a contraction, which allows for solving the DP problem for given model parameters $\theta$ by iteration. The iterative technique takes an initial guess $EV^0 = 0$ and updates $$EV^{r+1} =  P [\ln(\sum_{j = 0, 1} \exp(\bar u(\cdot, j; \theta_1) + \beta EV^r))]$$ until $\max(|EV^{r+1} - EV^r|) < tol$.
+
+The function ``compute_EV`` implements this contraction mapping to solve for the EV function given model parameters $\theta$, which includes the utility/cost parameters $\theta_{1}$ and the transition matrix $P$.
+
+
+```{bash, eval = FALSE}
+import numpy as np
+
+def compute_EV(x, P, theta, beta, tol):
+    """
+    solve the single-agent DP problem, computing the expected value (EV)
+    function for given values of model parameters by finding the fixed point
+    of the Bellman operator contraction
+
+    inputs:
+        x, state space vector
+        P, S x S transition matrix
+        theta, vector of parameters associated with the utility/cost
+            functions
+        beta, discount factor
+        tol, tolerance at which to stop the iteration
+
+
+    output:
+        EV, length S vector encoding the expected value function for each
+            state in x at the given parameters theta
+    """
+
+    def B(EV):
+        """
+        Bellman operator to iterate on
+
+        inputs:
+            EV, length S vector encoding the expected value function
+
+        output:
+            B, length S vector encoding the value B(EV)
+        """
+        
+        # utility and value from continuing (without the error term)
+        u_0 = u(x, 0, theta)
+        v_0 = u_0 + beta * EV
+        
+        # utility and value from replacing (without the error term)
+        u_1 = u(x, 1, theta)
+        v_1 = u_1 + beta * EV[0]
+
+        # subtract and re-add EV to avoid overflow issues
+        G = np.exp(v_0 - EV) + np.exp(v_1 - EV) # social surplus function
+        B = P @ (np.log(G) + EV) # Bellman operator
+
+        return B
+
+    EV_old = EV = np.zeros(P.shape[0]) # initial EV guess
+    error = 1
+
+    while error > tol:
+        EV_old = EV
+        EV = B(EV_old)
+        error = np.max(np.abs(EV - EV_old))
+
+    return EV
+
+def u(x, i, theta):
+    """
+    compute current-period utility, less the structural error
+
+    inputs:
+        x, state variable
+        i, decision variable
+        theta, vector of parameters associated with the utility/cost
+            functions
+    
+    output:
+        u, utility from choosing action i in state x
+    """
+
+    theta_1_1 = theta[0] # linear cost parameter
+    RC = theta[1] # replacement cost
+
+    def c(x, theta_1_1):
+        """
+        compute cost function
+
+        inputs:
+            x, state variable
+            theta_1_1, linear cost parameter
+        
+        output:
+            c, cost
+        """
+        return -0.001 * theta_1_1 * x
+
+    if i == 0:
+        return c(x, theta_1_1)
+    elif i == 1:
+        return c(0, theta_1_1) - RC 
+```
+
+### Computing Choice Probabilities
+
+Under the distributional assumption that the error terms $\epsilon_t$ are independently distributed Type I extreme value, choice probabilities conditional on the state variables are of the dynamic logit form $$P(i | x; \theta) = \frac{\exp(\bar u(x, i\ \theta) + \beta EV(x, i))}{\sum_{j = 0, 1} \exp(\bar u(x, j; \theta) + \beta EV(x, j))}.$$ The function ``choice_prob`` returns these choice probabilities for a given value of $\theta$ and corresponding EV vector.
+
+```{bash, eval = FALSE}
+import numpy as np
+
+from compute_EV import u
+
+def choice_prob(x, theta, beta, EV):
+    """
+    compute dynamic logit choice probabilities conditional on 
+    state variables
+
+    inputs:
+        x, length S vector of state variables
+        theta, vector of parameters associated with the utility/cost
+            functions
+        beta, discount factor
+        EV, length S vector of expected values
+    
+    output:
+        Pr, S x 2 array whose entries [i, j] are the probabilities
+            of choosing actions j = 0, 1 conditional on state i
+    """
+    
+    # utility and value from continuing (without the error term)
+    u_0 = u(x, 0, theta)
+    v_0 = u_0 + beta * EV
+        
+    # utility and value from replacing (without the error term)
+    u_1 = u(x, 1, theta)
+    v_1 = u_1 + beta * EV[0]
+
+    # dynamic logit choice probabilities
+    # subract max(EV) from exponents to avoid overflow
+    Pr_0 = np.exp(v_0 - max(EV)) / (np.exp(v_0 - max(EV)) + np.exp(v_1 - max(EV)))
+    Pr_1 = 1 - Pr_0
+
+    Pr = np.transpose(np.array((Pr_0, Pr_1)))
+    return Pr
+```
+
+### Partial Likelihood Objective Function
+
+As shown in Rust (1987), the likelihood function for a single bus can be decomposed as $$L(x_1, \dots, x_T, i_1, \dots, i_T; x_0, i_0, \theta) = \prod_{t = 1}^T P(i_t | x_t; \theta) P(x_t | x_{t-1}, i_{t-1}; \theta_3)$$ due to the conditional independence assumption. The log-likelihood for one bus is then $$l(x_1, \dots, x_T, i_1, \dots, i_T) = \sum_{t = 1}^T \ln(P(i_t | x_t; \theta)) + \sum_{t = 1}^T \ln(P(x_t | x_{t-1}, i_{t-1}; \theta_3)),$$ and the log-likelihood for multiple buses is simply the sum of the log-likelihoods for individual buses. 
+
+The first components of the log-likelihood, $\sum_{t = 1}^T \ln(P(i_t | x_t; \theta))$, make up the partial likelihood function. Partial likelihood parameter estimates can be obtained by first maximizing the transition likelihood $\sum_{t = 1}^T \ln(P(x_t | x_{t-1}, i_{t-1}; \theta_3))$ with respect to $\theta_3$, i.e., computing consistent estimates $\hat \theta_3$ by constructing the transition matrix $P$. Then, the remaining partial likelihood function is maximized with respect to the remaining model parameters $\theta \setminus \theta_3$.
+
+The function ``objective`` computes and returns the negative of the partial log-likelihood objective function for a given value of $\theta$, transition matrix $P$, and data $X$ and $I$, which contain the observed states and decisions across all buses in the data.
+
+```{bash, eval = FALSE}
+import numpy as np
+
+from compute_EV import *
+from choice_prob import *
+
+def objective(theta, x, P, beta, tol, X, I):
+    """
+    compute partial log-likelihood objective function
+
+    inputs:
+        theta, vector of parameters associated with the utility/cost
+            functions
+        x, length S vector of state variables
+        P, S x S transition matrix
+        beta, discount factor
+        tol, tolerance at which to stop the EV iteration
+        X, vector of observed states in data
+        I, vector of observed decisions in data
+
+    output:
+        LL, partial log-likelihood evaluated at theta
+    """
+
+    # solve for EV and conditional choice probabilities at theta
+    EV = compute_EV(x, P, theta, beta, tol)
+    Pr = choice_prob(x, theta, beta, EV)
+
+    # compute partial likelihood function
+    LL = 0
+    for x_t, i_t in zip(X, I):
+       LL += np.log(Pr[x_t, i_t])
+
+    return -LL
+```
+
+### Maximum Likelihood Estimation
+
+Estimation of model parameters is straightforward. First, all of the relevant data (observed state variables and decision variables) is loaded in.
+
+```{bash, eval = FALSE}
+import pandas as pd
+import numpy as np
+import scipy.optimize
+
+from transition import *
+from objective import *
+
+# load data
+X = np.array(pd.read_csv("./data/estimation/bus_dat.csv"))[:, 0]
+I = np.array(pd.read_csv("./data/estimation/bus_dat.csv"))[:, 1]
+delta = np.array(pd.read_csv("./data/estimation/bus_dat.csv"))[:, 2]
+
+S = 90 # number of states
+x = np.arange(S, dtype = np.float64) # state space vector
+
+```
+
+Next, the parameters $\theta_3$ are estimated and the transition matrix $P$ is computed with a function call to ``transition``.
+
+```{bash, eval = FALSE}
+# estimate transition probabilities theta_3 to build transition matrix
+P = transition(S, delta)
+```
+
+Lastly, the remaining parameters $\theta \setminus \theta_3$ are estimated via (partial) maximum likelihood estimation. The tolerance level for the EV contraction is set to $tol = 10^{-6}$ and the discount factor, which is not identified, is specified as $\beta = 0.9999$. In Rust (1987), estimates are reported separtely for $\beta = 0$ versus $\beta = 0.9999$.
+
+The objective function ``objective`` is minimized using the L-BFGS-B gradient-based search routine with the original parameter estimates published in Rust (1987) used as the starting search values. The parameters $\theta_{11}$ and $RC$ are constrained to be non-negative.
+
+```{bash, eval = FALSE}
+# maximize partial log-likelihood
+tol = 1e-6
+beta = 0.9999
+theta_1_start = np.array((2.6275, 9.7558))
+bounds = ((0, np.inf),) * theta_1_start.shape[0]
+
+p_ll = scipy.optimize.minimize(objective, theta_1_start, args = (
+    x, P, beta, tol, X, I
+    ), method = 'L-BFGS-B', bounds = bounds, options = {
+        'maxiter': 1000})
+
+# write parameter estimates to .csv
+theta = np.insert(p_ll.x, [2, 2], [P[0, 0], P[0, 1]])
+theta_df = pd.DataFrame(theta)
+theta_df.insert(0, "var", [
+    "theta_1_1", "RC", "theta_3_0", "theta_3_1"])
+theta_df.rename({0:'est'}, axis = 1, inplace = True)
+theta_df.to_csv("./output/theta_est.csv", sep = ",", index = False)
+```
+
+These estimates $\hat \theta$, which are not true maximum likelihood estimates, are consistent for $\theta$. However, Rust (1987) also re-estimates the full likelihood function jointly with respect to all model parameters $\theta = (\theta_{11}, RC, \theta_3)$ to obtain the efficient maximum likelihood estimates and notes that they are similar to the partial likelihood estimates.
+
+### Results
+Point estimates of all linear and non-linear parameters are shown below (compare to Table IX in Rust (1987)). 
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+
+names <- c("theta_1_1", "RC", "theta_3_0", "theta_3_1")
+vals <- c(2.46481, 9.582453, 0.363923, 0.624455)
+
+kable(tibble(params = names, est = vals), caption = "Parameter Estimates",
+      format = "html", table.attr = "style='width:30%;'") %>%
+  kableExtra::kable_styling()
+```
+
+
+
