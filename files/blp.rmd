@@ -317,7 +317,7 @@ def compute_shares(delta, gamma, sigma, X, p, product_markets, nu, D):
 
 For a given value of the non-linear parameters $\Gamma$ and $\Sigma$, BLP (1995) provide a contraction mapping technique that recovers the unique value of mean utilities $\delta$ which will equate model-implied market shares with observed market shares, i.e., $\delta_t$ in each market $t$ such that $\tilde \sigma_t(\delta_t; x_t, p_t, \Gamma, \Sigma, \hat F) = \hat s_t$. The iterative technique begins with a starting guess $\delta_t^0$, which is taken to be $\ln(\frac{\hat s_t}{\hat s_{0t}})$, and updates $$\delta_t^{r+1} = \delta_t^r + \ln(\hat s_t) - \ln(\tilde \sigma_t(\delta_t^r; x_t, p_t, \Gamma, \Sigma, \hat F))$$ until $\max(|\delta_t^r - \delta_t^{r + 1}|) < tol$. Proof of convergence is provided in the appendix of BLP (1995).
 
-The function ```contraction_mapping``` implements the contraction mapping directly with a function call to ```compute_shares``` and $tol = 10^{-12}$. [Nevo (2001)](https://onlinelibrary.wiley.com/doi/10.1111/j.1430-9134.2000.00513.x) provides some guidance on how to improve computational efficiency, such as taking exponents instead of logarithms and adjusting the tolerance level as the number of iterations increases.
+The function ```contraction_mapping``` implements the contraction mapping directly with a function call to ```compute_shares```. [Nevo (2001)](https://onlinelibrary.wiley.com/doi/10.1111/j.1430-9134.2000.00513.x) provides some guidance on how to improve computational efficiency, such as taking exponents instead of logarithms and adjusting the tolerance level as the number of iterations increases.
 
 ```{bash, eval = FALSE}
 import numpy as np
