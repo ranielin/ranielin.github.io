@@ -7,7 +7,7 @@ output:
   pdf_document: default
 ---
 
-This is a walkthrough of a replication of the point estimates corresponding to the simple linear cost function specification (first four rows of the "Groups 1, 2, 3, 4" column of Table IX) in Rust (1987). A repository with all of the code can be found [here](https://github.com/ranielin/Rust-1987-Replication). The estimation procedure is the the nested fixed point algorithm, a full-solution method that requires solving the DP problem for each set of parameter values that is searched over.
+This is a walkthrough of a replication of the point estimates corresponding to the simple linear cost function specification (first four rows of the "Groups 1, 2, 3, 4" column of Table IX) in Rust (1987). A repository with all of the code can be found [here](https://github.com/ranielin/Rust-1987-Replication). The estimation procedure is the nested fixed point algorithm, a full-solution method that requires solving the DP problem for each set of parameter values that is searched over.
 
 ### Model of Optimal Bus Engine Replacement
 
