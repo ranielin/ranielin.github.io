@@ -374,7 +374,7 @@ theta_df.to_csv("./output/theta_est.csv", sep = ",", index = False)
 These estimates $\hat \theta$, which are not true maximum likelihood estimates, are consistent for $\theta$. However, Rust (1987) also re-estimates the full likelihood function jointly with respect to all model parameters $\theta = (\theta_{11}, RC, \theta_3)$ to obtain the efficient maximum likelihood estimates and notes that they are similar to the partial likelihood estimates.
 
 ### Results
-Point estimates of all linear and non-linear parameters are shown below (compare to Table IX in Rust (1987)). 
+Point estimates of the model parameters are shown below (compare to Table IX in Rust (1987)). 
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 library(knitr)
