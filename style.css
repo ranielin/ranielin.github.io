@@ -116,6 +116,7 @@
 #a-content h1{
     font-size: 70px auto;
     margin-bottom: 25px;
+    font-weight: normal;
 }
 
 #a-content p{
@@ -147,14 +148,25 @@
 }
 
 #b-content{
-    width: 100%;
     position: absolute;
-    top: 20%;
+    top: 150px;
+    width: 100%;
     left: 15%;
-    transform: translateY(-50%);
-    text-align: left;
-    color: #000;
     font-size: 14px;
+}
+
+#b-content h1{
+    font-size: 70px auto;
+    margin-bottom: 20px;
+    font-weight: normal;
+}
+
+#b-content p{
+    margin-top: 10px;
+    margin-bottom: 15px;
+    font-weight: 100;
+    line-height: 25px;
+    max-inline-size: 65%;
 }
 
 #c-content{
@@ -168,6 +180,7 @@
 #c-content h1{
     font-size: 70px auto;
     margin-bottom: 20px;
+    font-weight: normal;
 }
 
 #c-content p{
