@@ -1,8 +1,12 @@
-function myFunction() {
-  var x = document.getElementById("navigation");
-  if (x.className === "navbar") {
-    x.className += " responsive";
+window.onload = toggleNav;
+var disp;
+
+function toggleNav(){
+
+  disp = document.getElementById("sidenav");
+  if (disp.style.display == "none") {
+    disp.style.display = "block";
   } else {
-    x.className = "navbar";
+    disp.style.display = "none";
   }
 }
