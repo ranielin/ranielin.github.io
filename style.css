@@ -95,6 +95,7 @@ nav .menubtn:hover{
 
 .sideNav{
     height: 115%;
+    width: 40%;
     position: fixed;
     top: -40px;
     right: 0;
@@ -152,8 +153,8 @@ nav .menubtn:hover{
 
 .sideNav .closebtn{
     color: black;
-    font-size: 20px;
-    margin-left: 115px;
+    font-size: 22px;
+    margin-left: 80%;
     text-decoration: none;
 }
 
