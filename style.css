@@ -8,7 +8,7 @@
 nav{
     padding: 35px 5%;
     width: 100%;
-    height: 80px;
+    height: 70px;
     display: flex;
     justify-content: space-between;
 }
@@ -25,7 +25,7 @@ nav ul{
 
 nav ul li{
     display: inline-block;
-    margin: 8px 15px;
+    margin: 8px 20px;
     border-radius: 10px;
     transition: 0.2s ease-in;
     position: relative;
@@ -33,10 +33,11 @@ nav ul li{
 
 nav ul li a{
     color: black;
-    font-size: 16px;
-    font-weight: 500;
     text-decoration: none;
-    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: 600;
+    font-variant: small-caps;
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 nav ul li::after{
@@ -63,12 +64,12 @@ nav ul li:hover::after{
 nav .menubtn{
     color: #000;
     text-decoration: none;
-    font-size: 30px;
+    font-size: 25px;
     font-weight: bolder;
     cursor: pointer;
     position: relative;
-    margin-top: -20px;
-    margin-right: -7.5px;
+    margin-top: -17.5px;
+    margin-right: -5px;
     display: none;
 }
 
@@ -95,7 +96,7 @@ nav .menubtn:hover{
 
 .sideNav{
     height: 115%;
-    width: 50%;
+    width: 100%;
     position: fixed;
     top: -40px;
     right: 0;
@@ -106,6 +107,7 @@ nav .menubtn:hover{
     opacity: 1;
     z-index: 1;
     display: none;
+    text-align: center;
 }
 
 .sideNav ul li{
@@ -121,10 +123,11 @@ nav .menubtn:hover{
     display: block;
     color: black;
     transition: 0.3s;
-    font-size: 18px;
-    font-weight: 500;
     text-decoration: none;
-    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: 600;
+    font-variant: small-caps;
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 .sideNav ul li::after{
@@ -155,7 +158,7 @@ nav .menubtn:hover{
 .sideNav .closebtn{
     color: black;
     font-size: 20px;
-    margin-left: 84%;
+    margin-left: 87.5%;
     text-decoration: none;
 }
 
@@ -174,25 +177,29 @@ nav .menubtn:hover{
 }
 
 #a-content h1{
-    font-size: 70px auto;
+    font-size: 24px;
     margin-bottom: 25px;
-    font-weight: normal;
+    font-weight: 600;
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 #a-content p{
     margin-bottom: 25px;
-    font-weight: 100;
-    line-height: 25px;
+    font-weight: 400;
+    line-height: 20px;
     max-inline-size: 80%;
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 #me{
     float: left;
     margin-top: 0.4%;
     padding-right: 4%;
+    width: 242.5px;
+    height: auto;
 }
 
-@media only screen and (max-width: 1050px) {
+@media only screen and (max-width: 1000px) {
     #me {
         float: none;
         padding-bottom: 4%;
@@ -212,17 +219,18 @@ nav .menubtn:hover{
 }
 
 #b-content h1{
-    font-size: 70px auto;
-    margin-bottom: 20px;
-    font-weight: normal;
+    font-size: 24px;
+    margin-bottom: 25px;
+    font-weight: 600;
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 #b-content p{
-    margin-top: 10px;
-    margin-bottom: 15px;
-    font-weight: 100;
-    line-height: 25px;
-    max-inline-size: 65%;
+    margin-bottom: 25px;
+    font-weight: 400;
+    line-height: 20px;
+    max-inline-size: 80%;
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 #c-content{
@@ -268,15 +276,17 @@ button{
     width: 200px;
     padding: 15px 0;
     text-align: center;
-    margin: -5px 0;
+    margin: 5px 0;
     border-radius: 25px;
-    font-weight: bold;
     border: 2px solid #720000;
     background: transparent;
     color: #000;
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    font-size: 14x;
+    font-weight: 600;
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 span{
