@@ -216,8 +216,8 @@ nav .menubtn:hover{
     float: left;
     margin-top: 0.4%;
     padding-right: 4%;
-    /* height: 325px; */
-    height: 255px;
+    height: 325px;
+    /* height: 255px; */
 }
 
 @media only screen and (max-width: 1150px) {
