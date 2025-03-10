@@ -35,16 +35,16 @@ nav ul li a{
     color: black;
     text-decoration: none;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     /*font-variant: small-caps;*/
-    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+    font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
 
 nav ul li::after{
     content: '';
     height: 3px;
     width: 0;
-    background: #720000;
+    background: #685545;
     left: 0;
     bottom: -7.5px;
     transition: 0.5s;
@@ -55,7 +55,7 @@ nav ul li:hover::after{
     content: '';
     height: 3px;
     width: 100%;
-    background: #720000;
+    background: #685545;
     left: 0;
     bottom: -7.5px;
     position: absolute;
@@ -74,7 +74,7 @@ nav .menubtn{
 }
 
 nav .menubtn:hover{
-    color: #720000
+    color: #685545
 }
 
 @media screen and (max-width: 600px) {
@@ -125,16 +125,16 @@ nav .menubtn:hover{
     transition: 0.3s;
     text-decoration: none;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     /*font-variant: small-caps;*/
-    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+    font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
 
 .sideNav ul li::after{
     content: '';
     height: 3px;
     width: 0;
-    background: #720000;
+    background: #685545;
     left: 0;
     bottom: -7.5px;
     transition: 0.5s;
@@ -145,14 +145,14 @@ nav .menubtn:hover{
     content: '';
     height: 3px;
     width: 100%;
-    background: #720000;
+    background: #685545;
     left: 0;
     bottom: -7.5px;
     position: absolute;
 }
 
 .sideNav .closebtn:hover{
-    color:#720000;
+    color:#685545;
 }
 
 .sideNav .closebtn{
@@ -160,6 +160,18 @@ nav .menubtn:hover{
     font-size: 20px;
     margin-left: 87.5%;
     text-decoration: none;
+}
+
+.vsco-logo {
+    width: 13px;
+    height: 13px;
+    transform: translate(13.5px, 1px); 
+    transition: transform 0.3s ease;
+}
+
+.vsco-logo:hover {
+    transform: translate(13.5px, 1px);
+    opacity: 0.5; 
 }
 
 .content{
@@ -178,9 +190,10 @@ nav .menubtn:hover{
 
 #a-content h1{
     margin-bottom: 25px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 24px;
-    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+    letter-spacing: -0.3px; 
+    font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
 
 #a-content p{
@@ -188,8 +201,8 @@ nav .menubtn:hover{
     line-height: 20px;
     max-inline-size: min(95%, 1000px);
     font-weight: 400;
-    font-size: 14px;
-    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+    font-size: 15px;
+    font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
 
 @media screen and (max-width: 1500px) {
@@ -216,7 +229,7 @@ nav .menubtn:hover{
     float: left;
     margin-top: 0.4%;
     padding-right: 4%;
-    height: 325px;
+    height: 330px;
     /* height: 255px; */
 }
 
@@ -239,10 +252,11 @@ nav .menubtn:hover{
 }
 
 #b-content h1{
-    font-size: 24px;
     margin-bottom: 25px;
-    font-weight: 600;
-    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.3px; 
+    font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
 
 #b-content p{
@@ -250,8 +264,8 @@ nav .menubtn:hover{
     line-height: 20px;
     max-inline-size: 80%;
     font-weight: 400;
-    font-size: 14px;
-    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+    font-size: 15px;
+    font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
 
 #c-content{
@@ -294,24 +308,25 @@ nav .menubtn:hover{
 }
 
 button{
-    width: 200px;
+    width: 160px;
     padding: 15px 0;
     text-align: center;
     margin: -15px 0;
     border-radius: 25px;
-    border: 2px solid #720000;
+    /*border: 2px solid #720000;*/
+    border: 2px solid #685545;
     background: transparent;
     color: #000;
     cursor: pointer;
     position: relative;
     overflow: hidden;
     font-size: 14x;
-    font-weight: 600;
-    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+    font-weight: 700;
+    font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
 
 span{
-    background: #720000;
+    background: #685545;
     height: 100%;
     width: 0;
     border-radius: 25px;
