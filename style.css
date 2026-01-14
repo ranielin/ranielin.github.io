@@ -254,8 +254,17 @@ nav .menubtn:hover{
 #b-content h1{
     margin-bottom: 25px;
     font-weight: 700;
-    font-size: 24px;
+    font-size: 22px;
     letter-spacing: -0.3px; 
+    font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
+}
+
+#b-content h2{
+    margin-bottom: 15px;
+    font-weight: 400;
+    font-size: 15px;
+    letter-spacing: 0.0px; 
+    text-decoration: underline;
     font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
 
@@ -267,6 +276,12 @@ nav .menubtn:hover{
     font-size: 15px;
     font-family: "garamond-premier-pro", "Baskerville Old Face", "Times New Roman", serif;
 }
+
+#b-content p em{
+    font: inherit;
+    font-style: italic;
+}
+
 
 #c-content{
     width: 100%;
